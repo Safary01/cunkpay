@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CunkPay — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cunkpay.css">
+<style>
+  .proof-img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px; cursor: pointer; }
+  .review-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .reject-note-area { display: none; margin-top: 8px; }
+  .reject-note-area.visible { display: block; }
+  .sub-row { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(30,42,66,0.5); }
+  .sub-row:last-child { border-bottom: none; }
+  .sub-row-left { flex: 1; }
+  .sub-worker { font-size: 0.85rem; font-weight: 600; margin-bottom: 2px; }
+  .sub-task-name { font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; }
+  .ledger-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid rgba(30,42,66,0.5); }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-desc { font-size: 0.82rem; color: var(--off-white); }
+  .ledger-date { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+  .detail-line { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid rgba(30,42,66,0.5); }
+  .detail-line:last-child { border-bottom: none; }
+  .detail-line span:first-child { color: var(--muted); }
+  .settings-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .users-toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .users-toolbar .field-input, .users-toolbar .field-select { max-width: 240px; }
+  .log-row { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(30,42,66,0.5); font-size: 0.82rem; }
+  .log-row:last-child { border-bottom: none; }
+  .log-icon { font-size: 1.1rem; }
+  .log-text { color: var(--off-white); }
+  .log-meta { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="app-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">Cunk<span>Pay</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sb-avatar">?</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sb-name">Loading…</div>
+        <div class="sidebar-user-role role-tag-admin">Admin</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span> Dashboard</button>
+      <div class="nav-section-label">Money</div>
+      <button class="nav-item" onclick="showPage('deposits')"><span class="nav-icon">💳</span> Deposits <span class="nav-badge" id="dep-badge" style="display:none">0</span></button>
+      <button class="nav-item" onclick="showPage('withdrawals')"><span class="nav-icon">🏦</span> Withdrawals <span class="nav-badge" id="wd-badge" style="display:none">0</span></button>
+      <div class="nav-section-label">Platform</div>
+      <button class="nav-item" onclick="showPage('tasks')"><span class="nav-icon">📋</span> Tasks</button>
+      <button class="nav-item" onclick="showPage('users')"><span class="nav-icon">👥</span> Users</button>
+      <button class="nav-item" onclick="showPage('activity')"><span class="nav-icon">🗒️</span> Activity Log</button>
+      <div class="nav-section-label">Account</div>
+      <button class="nav-item" onclick="showPage('settings')"><span class="nav-icon">⚙️</span> Settings</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item" onclick="handleSignOut()"><span class="nav-icon">🚪</span> Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main-content">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <div class="header-page-title" id="page-title">Dashboard</div>
+      </div>
+      <div class="header-right">
+        <span style="font-size:0.8rem;color:var(--muted)">Platform Revenue:</span>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--amber);font-size:0.95rem" id="header-revenue">₦0.00</span>
+      </div>
+    </header>
+
+    <div class="page-body">
+
+      <!-- ══ PAGE: DASHBOARD ══ -->
+      <div id="page-dashboard" class="page-content">
+        <div class="stats-row">
+          <div class="stat-card stat-cobalt">
+            <span class="stat-card-icon">👥</span>
+            <div class="stat-card-value" id="stat-users">0</div>
+            <div class="stat-card-label">Total Users</div>
+          </div>
+          <div class="stat-card stat-green">
+            <span class="stat-card-icon">📋</span>
+            <div class="stat-card-value" id="stat-active-tasks">0</div>
+            <div class="stat-card-label">Active Tasks</div>
+          </div>
+          <div class="stat-card stat-amber">
+            <span class="stat-card-icon">💳</span>
+            <div class="stat-card-value" id="stat-pending-deposits">0</div>
+            <div class="stat-card-label">Pending Deposits</div>
+          </div>
+          <div class="stat-card stat-purple">
+            <span class="stat-card-icon">🏦</span>
+            <div class="stat-card-value" id="stat-pending-withdrawals">0</div>
+            <div class="stat-card-label">Pending Withdrawals</div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">💳 Deposits Awaiting Review</div>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('deposits')">View all</button>
+            </div>
+            <div class="section-card-body" id="dash-pending-deposits">
+              <div class="page-loader"><div class="spinner spinner-lg"></div>Loading…</div>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">🏦 Withdrawals Awaiting Payout</div>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('withdrawals')">View all</button>
+            </div>
+            <div class="section-card-body" id="dash-pending-withdrawals">
+              <div class="page-loader"><div class="spinner spinner-lg"></div>Loading…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: DEPOSITS ══ -->
+      <div id="page-deposits" class="page-content" style="display:none">
+        <div class="page-tabs">
+          <button class="page-tab active" onclick="filterDeposits('pending',this)">⏳ Pending</button>
+          <button class="page-tab" onclick="filterDeposits('approved',this)">✅ Approved</button>
+          <button class="page-tab" onclick="filterDeposits('rejected',this)">❌ Rejected</button>
+        </div>
+        <div id="deposits-list">
+          <div class="page-loader"><div class="spinner spinner-lg"></div>Loading deposits…</div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: WITHDRAWALS ══ -->
+      <div id="page-withdrawals" class="page-content" style="display:none">
+        <div class="page-tabs">
+          <button class="page-tab active" onclick="filterWithdrawals('pending',this)">⏳ Pending</button>
+          <button class="page-tab" onclick="filterWithdrawals('paid',this)">✅ Paid</button>
+          <button class="page-tab" onclick="filterWithdrawals('rejected',this)">❌ Rejected</button>
+        </div>
+        <div id="withdrawals-list">
+          <div class="page-loader"><div class="spinner spinner-lg"></div>Loading withdrawals…</div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: TASKS ══ -->
+      <div id="page-tasks" class="page-content" style="display:none">
+        <div class="section-card">
+          <div class="section-card-header"><div class="section-card-title">📋 All Tasks</div></div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr><th>Title</th><th>Advertiser</th><th>Reward/Slot</th><th>Slots</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="tasks-tbody">
+                <tr><td colspan="6"><div class="page-loader"><div class="spinner"></div>Loading…</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: USERS ══ -->
+      <div id="page-users" class="page-content" style="display:none">
+        <div class="section-card">
+          <div class="section-card-header"><div class="section-card-title">👥 All Users</div></div>
+          <div class="section-card-body">
+            <div class="users-toolbar">
+              <input class="field-input" type="text" id="user-search" placeholder="Search by name or email…" oninput="renderUsers()">
+              <select class="field-select" id="user-role-filter" onchange="renderUsers()">
+                <option value="all">All Roles</option>
+                <option value="worker">Workers</option>
+                <option value="advertiser">Advertisers</option>
+                <option value="admin">Admins</option>
+              </select>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="data-table">
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Available</th><th>Reserved</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="users-tbody">
+                  <tr><td colspan="7"><div class="page-loader"><div class="spinner"></div>Loading…</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: ACTIVITY LOG ══ -->
+      <div id="page-activity" class="page-content" style="display:none">
+        <div class="section-card">
+          <div class="section-card-header"><div class="section-card-title">🗒️ Admin Activity Log</div></div>
+          <div class="section-card-body" id="activity-list">
+            <div class="page-loader"><div class="spinner spinner-lg"></div>Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: SETTINGS ══ -->
+      <div id="page-settings" class="page-content" style="display:none">
+        <div class="two-col">
+          <div class="section-card">
+            <div class="section-card-header"><div class="section-card-title">⚙️ Platform Fees &amp; Limits</div></div>
+            <div class="section-card-body">
+              <div class="alert-banner" id="settings-alert"></div>
+              <div class="settings-form-grid">
+                <div class="field-group"><label class="field-label">Deposit Fee (%)</label><input class="field-input" type="number" id="s-dep-fee" min="0" max="100" step="0.5"></div>
+                <div class="field-group"><label class="field-label">Withdrawal Fee (%)</label><input class="field-input" type="number" id="s-wd-fee" min="0" max="100" step="0.5"></div>
+                <div class="field-group"><label class="field-label">Minimum Deposit (₦)</label><input class="field-input" type="number" id="s-min-dep" min="0"></div>
+                <div class="field-group"><label class="field-label">Minimum Withdrawal (₦)</label><input class="field-input" type="number" id="s-min-wd" min="0"></div>
+              </div>
+              <button class="btn btn-primary" onclick="saveFeeSettings()">Save Fee Settings</button>
+              <div style="font-size:0.72rem;color:var(--muted);margin-top:10px;line-height:1.6">Note: worker.html and advertiser.html currently calculate fees with a hardcoded 10%. Update those files to read this settings doc if you want fee changes here to take effect platform-wide.</div>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header"><div class="section-card-title">🏦 Bank Transfer Details</div></div>
+            <div class="section-card-body">
+              <p style="font-size:0.78rem;color:var(--muted);margin-bottom:14px;line-height:1.6">Shown to advertisers on the Deposit Funds page so they know where to send payment.</p>
+              <div class="alert-banner" id="bank-alert"></div>
+              <div class="field-group"><label class="field-label">Bank Name</label><input class="field-input" type="text" id="s-bank-name" placeholder="e.g. GTBank"></div>
+              <div class="field-group"><label class="field-label">Account Number</label><input class="field-input" type="text" id="s-bank-accnum" placeholder="e.g. 0123456789"></div>
+              <div class="field-group"><label class="field-label">Account Name</label><input class="field-input" type="text" id="s-bank-accname" placeholder="e.g. CunkPay Limited"></div>
+              <button class="btn btn-primary" onclick="saveBankSettings()">Save Bank Details</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: REVIEW DEPOSIT ══ -->
+<div class="modal-overlay" id="dep-review-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">💳 Review Deposit</div>
+      <button class="modal-close" onclick="closeModal('dep-review-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:8px;font-size:0.82rem;color:var(--muted)">Advertiser</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;margin-bottom:14px" id="dr-advertiser-name"></div>
+      <img id="dr-image" class="proof-img" src="" alt="Payment proof" onclick="window.open(this.src,'_blank')">
+      <div class="detail-line"><span>Amount Submitted</span><span class="mono" id="dr-amount"></span></div>
+      <div class="detail-line"><span>Platform Fee</span><span class="mono" id="dr-fee"></span></div>
+      <div class="detail-line"><span>Net to Credit</span><span class="mono" style="color:var(--green)" id="dr-net"></span></div>
+      <div class="alert-banner" id="dr-alert" style="margin-top:12px"></div>
+      <div class="review-actions">
+        <button class="btn btn-success" onclick="reviewDeposit('approved')">✅ Approve &amp; Credit Wallet</button>
+        <button class="btn btn-danger" onclick="showDepRejectNote()">❌ Reject</button>
+      </div>
+      <div class="reject-note-area" id="dr-reject-note-area">
+        <div class="field-group" style="margin-top:10px">
+          <label class="field-label">Reason for Rejection (shown to advertiser)</label>
+          <textarea class="field-textarea" id="dr-reject-note" placeholder="e.g. Transfer amount does not match our bank records."></textarea>
+        </div>
+        <button class="btn btn-danger" onclick="reviewDeposit('rejected')">Confirm Rejection</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: PROCESS WITHDRAWAL ══ -->
+<div class="modal-overlay" id="wd-review-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏦 Process Withdrawal</div>
+      <button class="modal-close" onclick="closeModal('wd-review-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:8px;font-size:0.82rem;color:var(--muted)">Worker</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;margin-bottom:14px" id="wr-worker-name"></div>
+      <div class="detail-line"><span>Bank</span><span id="wr-bank"></span></div>
+      <div class="detail-line"><span>Account Number</span><span class="mono" id="wr-accnum"></span></div>
+      <div class="detail-line"><span>Account Name</span><span id="wr-accname"></span></div>
+      <div class="detail-line"><span>Gross Amount</span><span class="mono" id="wr-amount"></span></div>
+      <div class="detail-line"><span>Platform Fee</span><span class="mono" id="wr-fee"></span></div>
+      <div class="detail-line"><span>Net to Pay Out</span><span class="mono" style="color:var(--green)" id="wr-net"></span></div>
+      <div class="alert-banner" id="wr-alert" style="margin-top:12px"></div>
+      <div class="review-actions">
+        <button class="btn btn-success" onclick="reviewWithdrawal('paid')">✅ Mark as Paid</button>
+        <button class="btn btn-danger" onclick="showWdRejectNote()">❌ Reject &amp; Refund</button>
+      </div>
+      <div class="reject-note-area" id="wr-reject-note-area">
+        <div class="field-group" style="margin-top:10px">
+          <label class="field-label">Reason for Rejection (shown to worker)</label>
+          <textarea class="field-textarea" id="wr-reject-note" placeholder="e.g. Account name does not match registered name."></textarea>
+        </div>
+        <button class="btn btn-danger" onclick="reviewWithdrawal('rejected')">Confirm Rejection &amp; Refund</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     FIREBASE SCRIPTS
+══════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, addDoc,
+  collection, query, where, orderBy, limit, serverTimestamp, increment
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDAbScL9p3caIH9zpW3m9f8D3cWLetfOrs",
+  authDomain: "cunkpay.firebaseapp.com",
+  projectId: "cunkpay",
+  storageBucket: "cunkpay.firebasestorage.app",
+  messagingSenderId: "789585022129",
+  appId: "1:789585022129:web:935f8bef2232a43503e690"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let currentUserDoc = null;
+let allUsers = [];
+let currentDepFilter = "pending";
+let currentWdFilter = "pending";
+let reviewingDepId = null, reviewingDepAdvertiserId = null, reviewingDepAmount = 0, reviewingDepNet = 0;
+let reviewingWdId = null, reviewingWdWorkerId = null, reviewingWdAmount = 0, reviewingWdNet = 0;
+
+// ── AUTH GUARD ──
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = "auth.html"; return; }
+  currentUser = user;
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (!snap.exists()) { window.location.href = "auth.html"; return; }
+  currentUserDoc = snap.data();
+  if (currentUserDoc.role !== "admin") {
+    window.location.href = currentUserDoc.role === "advertiser" ? "advertiser.html" : "worker.html";
+    return;
+  }
+  initDashboard();
+});
+
+function initDashboard() {
+  const d = currentUserDoc;
+  document.getElementById("sb-name").textContent = d.displayName || "Admin";
+  document.getElementById("sb-avatar").textContent = (d.displayName || "A")[0].toUpperCase();
+  loadDashboard();
+}
+
+// ── PAGE NAVIGATION ──
+const pageTitles = { dashboard: "Dashboard", deposits: "Deposits", withdrawals: "Withdrawals", tasks: "Task Management", users: "User Management", activity: "Activity Log", settings: "Platform Settings" };
+
+window.showPage = function(page) {
+  document.querySelectorAll(".page-content").forEach(p => p.style.display = "none");
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-" + page).style.display = "block";
+  document.getElementById("page-title").textContent = pageTitles[page] || "Dashboard";
+  const btn = [...document.querySelectorAll(".nav-item")].find(b => b.getAttribute("onclick")?.includes(`'${page}'`));
+  if (btn) btn.classList.add("active");
+  closeSidebar();
+
+  if (page === "deposits") loadDeposits("pending");
+  if (page === "withdrawals") loadWithdrawals("pending");
+  if (page === "tasks") loadTasks();
+  if (page === "users") loadUsers();
+  if (page === "activity") loadActivity();
+  if (page === "settings") loadSettings();
+};
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  const usersSnap = await getDocs(collection(db, "users"));
+  document.getElementById("stat-users").textContent = usersSnap.size;
+
+  const activeTaskQ = query(collection(db, "tasks"), where("status", "==", "active"));
+  const activeTaskSnap = await getDocs(activeTaskQ);
+  document.getElementById("stat-active-tasks").textContent = activeTaskSnap.size;
+
+  const pendDepQ = query(collection(db, "deposits"), where("status", "==", "pending"));
+  const pendDepSnap = await getDocs(pendDepQ);
+  document.getElementById("stat-pending-deposits").textContent = pendDepSnap.size;
+  setBadge("dep-badge", pendDepSnap.size);
+
+  const pendWdQ = query(collection(db, "withdrawals"), where("status", "==", "pending"));
+  const pendWdSnap = await getDocs(pendWdQ);
+  document.getElementById("stat-pending-withdrawals").textContent = pendWdSnap.size;
+  setBadge("wd-badge", pendWdSnap.size);
+
+  // Platform revenue = sum of fees from approved deposits + paid withdrawals
+  let revenue = 0;
+  const apDepQ = query(collection(db, "deposits"), where("status", "==", "approved"));
+  const apDepSnap = await getDocs(apDepQ);
+  apDepSnap.docs.forEach(d => revenue += (d.data().feeCharged || 0));
+  const paidWdQ = query(collection(db, "withdrawals"), where("status", "==", "paid"));
+  const paidWdSnap = await getDocs(paidWdQ);
+  paidWdSnap.docs.forEach(d => revenue += (d.data().feeCharged || 0));
+  document.getElementById("header-revenue").textContent = formatNaira(revenue);
+
+  renderDashDeposits(pendDepSnap.docs.slice(0, 5));
+  renderDashWithdrawals(pendWdSnap.docs.slice(0, 5));
+}
+
+function setBadge(id, count) {
+  const el = document.getElementById(id);
+  if (count > 0) { el.style.display = "inline-block"; el.textContent = count; }
+  else { el.style.display = "none"; }
+}
+
+function renderDashDeposits(docs) {
+  const el = document.getElementById("dash-pending-deposits");
+  if (docs.length === 0) { el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💳</div><div class="empty-state-title">No pending deposits</div></div>`; return; }
+  el.innerHTML = docs.map(d => {
+    const dep = d.data();
+    return `<div class="sub-row">
+      <div class="sub-row-left">
+        <div class="sub-worker">${esc(dep.advertiserName || "Advertiser")}</div>
+        <div class="sub-task-name">₦${fmtNum(dep.amount)} · ${formatDate(dep.requestedAt)}</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showPage('deposits');openDepReviewModal('${d.id}')">Review</button>
+    </div>`;
+  }).join("");
+}
+
+function renderDashWithdrawals(docs) {
+  const el = document.getElementById("dash-pending-withdrawals");
+  if (docs.length === 0) { el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🏦</div><div class="empty-state-title">No pending withdrawals</div></div>`; return; }
+  el.innerHTML = docs.map(d => {
+    const w = d.data();
+    return `<div class="sub-row">
+      <div class="sub-row-left">
+        <div class="sub-worker">${esc(w.workerName || "Worker")}</div>
+        <div class="sub-task-name">₦${fmtNum(w.netPaid)} · ${formatDate(w.requestedAt)}</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showPage('withdrawals');openWdReviewModal('${d.id}')">Process</button>
+    </div>`;
+  }).join("");
+}
+
+// ── DEPOSITS ──
+async function loadDeposits(filter) {
+  currentDepFilter = filter;
+  const q = query(collection(db, "deposits"), where("status", "==", filter), orderBy("requestedAt", "desc"), limit(50));
+  const snap = await getDocs(q);
+  renderDeposits(snap.docs);
+}
+
+function renderDeposits(docs) {
+  const el = document.getElementById("deposits-list");
+  if (docs.length === 0) { el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💳</div><div class="empty-state-title">No ${currentDepFilter} deposits</div></div>`; return; }
+  el.innerHTML = '<div class="section-card"><div class="section-card-body">' + docs.map(d => {
+    const dep = d.data();
+    return `<div class="sub-row">
+      <div class="sub-row-left">
+        <div class="sub-worker">${esc(dep.advertiserName || "Advertiser")}</div>
+        <div class="sub-task-name">₦${fmtNum(dep.amount)} submitted · net ₦${fmtNum(dep.netCredited)} · ${formatDate(dep.requestedAt)}</div>
+        ${dep.adminNote ? `<div style="font-size:0.75rem;color:var(--red-light);margin-top:4px">Note: ${esc(dep.adminNote)}</div>` : ""}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <span class="badge badge-${dep.status}">${dep.status}</span>
+        ${dep.status === "pending" ? `<button class="btn btn-primary btn-sm" onclick="openDepReviewModal('${d.id}')">Review</button>` : ""}
+      </div>
+    </div>`;
+  }).join("") + "</div></div>";
+}
+
+window.filterDeposits = function(filter, btn) {
+  document.querySelectorAll("#page-deposits .page-tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  loadDeposits(filter);
+};
+
+window.openDepReviewModal = async function(depId) {
+  const snap = await getDoc(doc(db, "deposits", depId));
+  if (!snap.exists()) return;
+  const dep = snap.data();
+  reviewingDepId = depId;
+  reviewingDepAdvertiserId = dep.advertiserId;
+  reviewingDepAmount = dep.amount || 0;
+  reviewingDepNet = dep.netCredited || 0;
+
+  document.getElementById("dr-advertiser-name").textContent = dep.advertiserName || "—";
+  document.getElementById("dr-image").src = dep.proofImageUrl || "";
+  document.getElementById("dr-amount").textContent = "₦" + fmtNum(dep.amount);
+  document.getElementById("dr-fee").textContent = "₦" + fmtNum(dep.feeCharged);
+  document.getElementById("dr-net").textContent = "₦" + fmtNum(dep.netCredited);
+  document.getElementById("dr-alert").className = "alert-banner";
+  document.getElementById("dr-reject-note-area").className = "reject-note-area";
+  document.getElementById("dr-reject-note").value = "";
+
+  openModal("dep-review-modal");
+};
+
+window.showDepRejectNote = function() {
+  document.getElementById("dr-reject-note-area").className = "reject-note-area visible";
+};
+
+window.reviewDeposit = async function(decision) {
+  const alertEl = document.getElementById("dr-alert");
+  const note = decision === "rejected" ? document.getElementById("dr-reject-note").value.trim() : null;
+  if (decision === "rejected" && !note) { showBanner(alertEl, "Please provide a reason for rejection.", "error"); return; }
+
+  try {
+    await updateDoc(doc(db, "deposits", reviewingDepId), {
+      status: decision, adminNote: note || null, reviewedAt: serverTimestamp()
+    });
+
+    if (decision === "approved") {
+      await updateDoc(doc(db, "users", reviewingDepAdvertiserId), {
+        walletAvailable: increment(reviewingDepNet),
+        totalDeposited: increment(reviewingDepAmount)
+      });
+      await addDoc(collection(db, "ledger"), {
+        userId: reviewingDepAdvertiserId, type: "credit", amount: reviewingDepNet,
+        description: "Deposit approved by admin", relatedId: reviewingDepId, createdAt: serverTimestamp()
+      });
+      await logActivity("💳", `Approved deposit of ₦${fmtNum(reviewingDepAmount)}`, "deposit", reviewingDepId);
+    } else {
+      await logActivity("❌", `Rejected deposit of ₦${fmtNum(reviewingDepAmount)} — ${note}`, "deposit", reviewingDepId);
+    }
+
+    closeModal("dep-review-modal");
+    showToast(decision === "approved" ? "Deposit approved. Wallet credited." : "Deposit rejected.", decision === "approved" ? "success" : "warning");
+    loadDashboard();
+    loadDeposits(currentDepFilter);
+  } catch (e) {
+    showBanner(alertEl, "Action failed. Please try again.", "error");
+  }
+};
+
+// ── WITHDRAWALS ──
+async function loadWithdrawals(filter) {
+  currentWdFilter = filter;
+  const q = query(collection(db, "withdrawals"), where("status", "==", filter), orderBy("requestedAt", "desc"), limit(50));
+  const snap = await getDocs(q);
+  renderWithdrawals(snap.docs);
+}
+
+function renderWithdrawals(docs) {
+  const el = document.getElementById("withdrawals-list");
+  if (docs.length === 0) { el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🏦</div><div class="empty-state-title">No ${currentWdFilter} withdrawals</div></div>`; return; }
+  el.innerHTML = '<div class="section-card"><div class="section-card-body">' + docs.map(d => {
+    const w = d.data();
+    return `<div class="sub-row">
+      <div class="sub-row-left">
+        <div class="sub-worker">${esc(w.workerName || "Worker")}</div>
+        <div class="sub-task-name">${esc(w.bankName)} ••••${String(w.accountNumber).slice(-4)} · net ₦${fmtNum(w.netPaid)} · ${formatDate(w.requestedAt)}</div>
+        ${w.adminNote ? `<div style="font-size:0.75rem;color:var(--red-light);margin-top:4px">Note: ${esc(w.adminNote)}</div>` : ""}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <span class="badge badge-${w.status}">${w.status}</span>
+        ${w.status === "pending" ? `<button class="btn btn-primary btn-sm" onclick="openWdReviewModal('${d.id}')">Process</button>` : ""}
+      </div>
+    </div>`;
+  }).join("") + "</div></div>";
+}
+
+window.filterWithdrawals = function(filter, btn) {
+  document.querySelectorAll("#page-withdrawals .page-tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  loadWithdrawals(filter);
+};
+
+window.openWdReviewModal = async function(wdId) {
+  const snap = await getDoc(doc(db, "withdrawals", wdId));
+  if (!snap.exists()) return;
+  const w = snap.data();
+  reviewingWdId = wdId;
+  reviewingWdWorkerId = w.workerId;
+  reviewingWdAmount = w.amount || 0;
+  reviewingWdNet = w.netPaid || 0;
+
+  document.getElementById("wr-worker-name").textContent = w.workerName || "—";
+  document.getElementById("wr-bank").textContent = w.bankName || "—";
+  document.getElementById("wr-accnum").textContent = w.accountNumber || "—";
+  document.getElementById("wr-accname").textContent = w.accountName || "—";
+  document.getElementById("wr-amount").textContent = "₦" + fmtNum(w.amount);
+  document.getElementById("wr-fee").textContent = "₦" + fmtNum(w.feeCharged);
+  document.getElementById("wr-net").textContent = "₦" + fmtNum(w.netPaid);
+  document.getElementById("wr-alert").className = "alert-banner";
+  document.getElementById("wr-reject-note-area").className = "reject-note-area";
+  document.getElementById("wr-reject-note").value = "";
+
+  openModal("wd-review-modal");
+};
+
+window.showWdRejectNote = function() {
+  document.getElementById("wr-reject-note-area").className = "reject-note-area visible";
+};
+
+window.reviewWithdrawal = async function(decision) {
+  const alertEl = document.getElementById("wr-alert");
+  const note = decision === "rejected" ? document.getElementById("wr-reject-note").value.trim() : null;
+  if (decision === "rejected" && !note) { showBanner(alertEl, "Please provide a reason for rejection.", "error"); return; }
+
+  try {
+    await updateDoc(doc(db, "withdrawals", reviewingWdId), {
+      status: decision, adminNote: note || null, paidAt: decision === "paid" ? serverTimestamp() : null
+    });
+
+    if (decision === "paid") {
+      // Money already moved out of walletAvailable into walletReserved at request time — just release the reservation.
+      await updateDoc(doc(db, "users", reviewingWdWorkerId), { walletReserved: increment(-reviewingWdAmount) });
+      await addDoc(collection(db, "ledger"), {
+        userId: reviewingWdWorkerId, type: "debit", amount: reviewingWdAmount,
+        description: "Withdrawal paid out by admin", relatedId: reviewingWdId, createdAt: serverTimestamp()
+      });
+      await logActivity("✅", `Paid out withdrawal of ₦${fmtNum(reviewingWdNet)} (net)`, "withdrawal", reviewingWdId);
+    } else {
+      // Refund worker — move reserved amount back to available.
+      await updateDoc(doc(db, "users", reviewingWdWorkerId), {
+        walletAvailable: increment(reviewingWdAmount),
+        walletReserved: increment(-reviewingWdAmount)
+      });
+      await addDoc(collection(db, "ledger"), {
+        userId: reviewingWdWorkerId, type: "credit", amount: reviewingWdAmount,
+        description: `Withdrawal rejected — refunded: ${note}`, relatedId: reviewingWdId, createdAt: serverTimestamp()
+      });
+      await logActivity("❌", `Rejected withdrawal of ₦${fmtNum(reviewingWdAmount)} — ${note}`, "withdrawal", reviewingWdId);
+    }
+
+    closeModal("wd-review-modal");
+    showToast(decision === "paid" ? "Withdrawal marked as paid." : "Withdrawal rejected and refunded.", decision === "paid" ? "success" : "warning");
+    loadDashboard();
+    loadWithdrawals(currentWdFilter);
+  } catch (e) {
+    showBanner(alertEl, "Action failed. Please try again.", "error");
+  }
+};
+
+// ── TASKS ──
+async function loadTasks() {
+  const q = query(collection(db, "tasks"), orderBy("createdAt", "desc"), limit(100));
+  const snap = await getDocs(q);
+  const tbody = document.getElementById("tasks-tbody");
+  if (snap.empty) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No tasks yet</div></div></td></tr>`; return; }
+  tbody.innerHTML = snap.docs.map(d => {
+    const t = d.data();
+    return `<tr>
+      <td style="max-width:200px;word-break:break-word">${esc(t.title)}</td>
+      <td>${esc(t.advertiserName || "—")}</td>
+      <td class="mono" style="color:var(--amber)">₦${fmtNum(t.rewardPerSlot)}</td>
+      <td class="mono">${t.filledSlots}/${t.totalSlots}</td>
+      <td><span class="badge badge-${t.status === 'paused' ? 'pending' : t.status}">${t.status}</span></td>
+      <td style="display:flex;gap:6px">
+        ${t.status === "active" ? `<button class="btn btn-ghost btn-sm" onclick="adminPauseTask('${d.id}')">Pause</button>` : ""}
+        ${t.status === "paused" ? `<button class="btn btn-success btn-sm" onclick="adminResumeTask('${d.id}')">Resume</button>` : ""}
+        ${t.status !== "closed" ? `<button class="btn btn-danger btn-sm" onclick="adminCloseTask('${d.id}','${esc(t.advertiserId)}',${t.totalSlots},${t.filledSlots},${t.rewardPerSlot})">Force Close</button>` : ""}
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+window.adminPauseTask = async function(taskId) {
+  await updateDoc(doc(db, "tasks", taskId), { status: "paused" });
+  await logActivity("⏸️", `Paused task ${taskId}`, "task", taskId);
+  showToast("Task paused.", "info");
+  loadTasks();
+};
+window.adminResumeTask = async function(taskId) {
+  await updateDoc(doc(db, "tasks", taskId), { status: "active" });
+  await logActivity("▶️", `Resumed task ${taskId}`, "task", taskId);
+  showToast("Task resumed.", "success");
+  loadTasks();
+};
+window.adminCloseTask = async function(taskId, advertiserId, totalSlots, filledSlots, rewardPerSlot) {
+  if (!confirm("Force close this task? Any unfilled slot budget will be refunded to the advertiser's wallet.")) return;
+  const remaining = (totalSlots - filledSlots) * rewardPerSlot;
+  await updateDoc(doc(db, "tasks", taskId), { status: "closed" });
+  if (remaining > 0) {
+    await updateDoc(doc(db, "users", advertiserId), {
+      walletAvailable: increment(remaining),
+      walletReserved: increment(-remaining)
+    });
+    await addDoc(collection(db, "ledger"), {
+      userId: advertiserId, type: "credit", amount: remaining,
+      description: "Task force-closed by admin — unused budget refunded", relatedId: taskId, createdAt: serverTimestamp()
+    });
+  }
+  await logActivity("🛑", `Force-closed task ${taskId}, refunded ₦${fmtNum(remaining)}`, "task", taskId);
+  showToast("Task closed and remaining budget refunded.", "success");
+  loadTasks();
+};
+
+// ── USERS ──
+async function loadUsers() {
+  const snap = await getDocs(collection(db, "users"));
+  allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderUsers();
+}
+
+window.renderUsers = function() {
+  const search = (document.getElementById("user-search").value || "").toLowerCase();
+  const roleFilter = document.getElementById("user-role-filter").value;
+  let list = allUsers.filter(u => {
+    if (roleFilter !== "all" && u.role !== roleFilter) return false;
+    if (search && !(u.displayName || "").toLowerCase().includes(search) && !(u.email || "").toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById("users-tbody");
+  if (list.length === 0) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-title">No users found</div></div></td></tr>`; return; }
+  tbody.innerHTML = list.map(u => `<tr>
+    <td>${esc(u.displayName || "—")}</td>
+    <td>${esc(u.email || "—")}</td>
+    <td><span class="badge badge-${u.role}">${u.role}</span></td>
+    <td class="mono" style="color:var(--green)">₦${fmtNum(u.walletAvailable)}</td>
+    <td class="mono" style="color:var(--amber)">₦${fmtNum(u.walletReserved)}</td>
+    <td><span class="badge badge-${u.status === 'suspended' ? 'suspended' : 'active'}">${u.status || 'active'}</span></td>
+    <td>
+      ${u.id === currentUser.uid ? `<span style="font-size:0.72rem;color:var(--muted)">You</span>` :
+        u.status === "suspended" ? `<button class="btn btn-success btn-sm" onclick="toggleSuspend('${u.id}','active')">Unsuspend</button>` :
+        `<button class="btn btn-danger btn-sm" onclick="toggleSuspend('${u.id}','suspended')">Suspend</button>`}
+    </td>
+  </tr>`).join("");
+};
+
+window.toggleSuspend = async function(uid, newStatus) {
+  if (newStatus === "suspended" && !confirm("Suspend this user? They will be signed out and blocked from logging back in until reinstated.")) return;
+  await updateDoc(doc(db, "users", uid), { status: newStatus });
+  await logActivity(newStatus === "suspended" ? "🚫" : "✅", `${newStatus === "suspended" ? "Suspended" : "Unsuspended"} user ${uid}`, "user", uid);
+  showToast(newStatus === "suspended" ? "User suspended." : "User reinstated.", newStatus === "suspended" ? "warning" : "success");
+  loadUsers();
+};
+
+// ── ACTIVITY LOG ──
+async function loadActivity() {
+  const q = query(collection(db, "auditLog"), orderBy("createdAt", "desc"), limit(100));
+  const snap = await getDocs(q);
+  const el = document.getElementById("activity-list");
+  if (snap.empty) { el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🗒️</div><div class="empty-state-title">No activity yet</div></div>`; return; }
+  el.innerHTML = snap.docs.map(d => {
+    const l = d.data();
+    return `<div class="log-row">
+      <span class="log-icon">${l.icon || "•"}</span>
+      <div>
+        <div class="log-text">${esc(l.detail)}</div>
+        <div class="log-meta">${esc(l.adminName || "Admin")} · ${formatDate(l.createdAt)}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function logActivity(icon, detail, targetType, targetId) {
+  try {
+    await addDoc(collection(db, "auditLog"), {
+      adminId: currentUser.uid, adminName: currentUserDoc.displayName || "Admin",
+      icon, detail, targetType, targetId, createdAt: serverTimestamp()
+    });
+  } catch (e) { console.error("Failed to log activity:", e); }
+}
+
+// ── SETTINGS ──
+async function loadSettings() {
+  const snap = await getDoc(doc(db, "settings", "platform"));
+  const s = snap.exists() ? snap.data() : {};
+  document.getElementById("s-dep-fee").value = s.depositFeePercent ?? 10;
+  document.getElementById("s-wd-fee").value = s.withdrawalFeePercent ?? 10;
+  document.getElementById("s-min-dep").value = s.minDeposit ?? 1000;
+  document.getElementById("s-min-wd").value = s.minWithdrawal ?? 500;
+  document.getElementById("s-bank-name").value = s.bankName ?? "";
+  document.getElementById("s-bank-accnum").value = s.bankAccountNumber ?? "";
+  document.getElementById("s-bank-accname").value = s.bankAccountName ?? "";
+}
+
+window.saveFeeSettings = async function() {
+  const alertEl = document.getElementById("settings-alert");
+  try {
+    await setDoc(doc(db, "settings", "platform"), {
+      depositFeePercent: parseFloat(document.getElementById("s-dep-fee").value) || 0,
+      withdrawalFeePercent: parseFloat(document.getElementById("s-wd-fee").value) || 0,
+      minDeposit: parseFloat(document.getElementById("s-min-dep").value) || 0,
+      minWithdrawal: parseFloat(document.getElementById("s-min-wd").value) || 0,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    await logActivity("⚙️", "Updated platform fee settings", "settings", "platform");
+    showBanner(alertEl, "Fee settings saved.", "success");
+  } catch (e) {
+    showBanner(alertEl, "Failed to save settings.", "error");
+  }
+};
+
+window.saveBankSettings = async function() {
+  const alertEl = document.getElementById("bank-alert");
+  try {
+    await setDoc(doc(db, "settings", "platform"), {
+      bankName: document.getElementById("s-bank-name").value.trim(),
+      bankAccountNumber: document.getElementById("s-bank-accnum").value.trim(),
+      bankAccountName: document.getElementById("s-bank-accname").value.trim(),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    await logActivity("🏦", "Updated platform bank transfer details", "settings", "platform");
+    showBanner(alertEl, "Bank details saved.", "success");
+  } catch (e) {
+    showBanner(alertEl, "Failed to save bank details.", "error");
+  }
+};
+
+// ── SIGN OUT ──
+window.handleSignOut = async function() {
+  await signOut(auth);
+  window.location.href = "auth.html";
+};
+
+// ── HELPERS ──
+function formatNaira(n) { return "₦" + fmtNum(n); }
+function fmtNum(n) { return (parseFloat(n) || 0).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function formatDate(ts) { if (!ts) return "—"; const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) + " " + d.toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" }); }
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+window.openModal = function(id) { document.getElementById(id).classList.add("open"); }
+window.closeModal = function(id) { document.getElementById(id).classList.remove("open"); }
+window.toggleSidebar = function() { document.getElementById("sidebar").classList.toggle("open"); }
+function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); }
+
+function showBanner(el, msg, type) {
+  el.textContent = msg;
+  el.className = `alert-banner ${type} visible`;
+}
+
+window.showToast = function(msg, type = "info") {
+  const c = document.getElementById("toast-container");
+  const t = document.createElement("div");
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+};
+
+document.querySelectorAll(".modal-overlay").forEach(o => {
+  o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
+});
+</script>
+</body>
+</html>

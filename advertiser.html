@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CunkPay — Advertiser Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cunkpay.css">
+<style>
+  .task-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .proof-select-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 16px; }
+  .proof-opt { display: none; }
+  .proof-opt-label {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 6px; border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; font-size: 0.78rem; font-weight: 600; color: var(--slate);
+    text-align: center; transition: all 0.15s;
+  }
+  .proof-opt-label:hover { border-color: var(--cobalt); color: var(--white); }
+  .proof-opt:checked + .proof-opt-label { border-color: var(--cobalt); background: var(--cobalt-dim); color: var(--white); }
+  .proof-opt-icon { font-size: 1.2rem; }
+  .cost-preview { background: var(--midnight); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 0.82rem; }
+  .cost-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .cost-row:last-child { margin-bottom: 0; padding-top: 6px; border-top: 1px solid var(--border); font-weight: 700; }
+  .proof-img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px; cursor: pointer; }
+  .review-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .reject-note-area { display: none; margin-top: 8px; }
+  .reject-note-area.visible { display: block; }
+  .sub-row { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(30,42,66,0.5); }
+  .sub-row:last-child { border-bottom: none; }
+  .sub-row-left { flex: 1; }
+  .sub-worker { font-size: 0.85rem; font-weight: 600; margin-bottom: 2px; }
+  .sub-task-name { font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; }
+  .ledger-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid rgba(30,42,66,0.5); }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-desc { font-size: 0.82rem; color: var(--off-white); }
+  .ledger-date { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+  .ledger-amt { font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; font-weight: 600; }
+  .amt-cr { color: var(--green); } .amt-dr { color: var(--red); }
+</style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="app-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">Cunk<span>Pay</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sb-avatar">?</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sb-name">Loading…</div>
+        <div class="sidebar-user-role role-tag-advertiser">Advertiser</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span> Dashboard</button>
+      <button class="nav-item" onclick="showPage('tasks')"><span class="nav-icon">📋</span> My Tasks</button>
+      <button class="nav-item" onclick="showPage('submissions')"><span class="nav-icon">📸</span> Review Proofs <span class="nav-badge" id="pending-badge" style="display:none">0</span></button>
+      <div class="nav-section-label">Wallet</div>
+      <button class="nav-item" onclick="showPage('wallet')"><span class="nav-icon">💰</span> My Wallet</button>
+      <button class="nav-item" onclick="showPage('deposit')"><span class="nav-icon">💳</span> Deposit Funds</button>
+      <div class="nav-section-label">Account</div>
+      <button class="nav-item" onclick="showPage('settings')"><span class="nav-icon">⚙️</span> Settings</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item" onclick="handleSignOut()"><span class="nav-icon">🚪</span> Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main-content">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <div class="header-page-title" id="page-title">Dashboard</div>
+      </div>
+      <div class="header-right">
+        <span style="font-size:0.8rem;color:var(--muted)">Balance:</span>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--cobalt-light);font-size:0.95rem" id="header-balance">₦0.00</span>
+        <button class="btn btn-primary btn-sm" onclick="showPage('tasks');openCreateTaskModal()">+ New Task</button>
+      </div>
+    </header>
+
+    <div class="page-body">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div id="page-dashboard" class="page-content">
+        <div class="stats-row">
+          <div class="stat-card stat-cobalt">
+            <span class="stat-card-icon">💰</span>
+            <div class="stat-card-value" id="stat-available">₦0</div>
+            <div class="stat-card-label">Available Balance</div>
+          </div>
+          <div class="stat-card stat-amber">
+            <span class="stat-card-icon">🔒</span>
+            <div class="stat-card-value" id="stat-reserved">₦0</div>
+            <div class="stat-card-label">Reserved in Tasks</div>
+          </div>
+          <div class="stat-card stat-green">
+            <span class="stat-card-icon">📋</span>
+            <div class="stat-card-value" id="stat-tasks">0</div>
+            <div class="stat-card-label">Active Tasks</div>
+          </div>
+          <div class="stat-card stat-purple">
+            <span class="stat-card-icon">⏳</span>
+            <div class="stat-card-value" id="stat-pending-proofs">0</div>
+            <div class="stat-card-label">Pending Proofs</div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">📸 Proofs Awaiting Review</div>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('submissions')">View all</button>
+            </div>
+            <div class="section-card-body" id="dash-pending-proofs">
+              <div class="page-loader"><div class="spinner spinner-lg"></div>Loading…</div>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">📋 My Active Tasks</div>
+              <button class="btn btn-primary btn-sm" onclick="showPage('tasks');openCreateTaskModal()">+ New Task</button>
+            </div>
+            <div class="section-card-body" id="dash-tasks">
+              <div class="page-loader"><div class="spinner spinner-lg"></div>Loading…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MY TASKS ══ -->
+      <div id="page-tasks" class="page-content" style="display:none">
+        <div class="section-card">
+          <div class="section-card-header">
+            <div class="section-card-title">📋 My Tasks</div>
+            <button class="btn btn-primary btn-sm" onclick="openCreateTaskModal()">+ Create Task</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr><th>Title</th><th>Reward/Slot</th><th>Slots</th><th>Proof Type</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="tasks-tbody">
+                <tr><td colspan="6"><div class="page-loader"><div class="spinner"></div>Loading…</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ REVIEW PROOFS ══ -->
+      <div id="page-submissions" class="page-content" style="display:none">
+        <div class="page-tabs">
+          <button class="page-tab active" onclick="filterSubs('pending',this)">⏳ Pending</button>
+          <button class="page-tab" onclick="filterSubs('approved',this)">✅ Approved</button>
+          <button class="page-tab" onclick="filterSubs('rejected',this)">❌ Rejected</button>
+        </div>
+        <div id="subs-list">
+          <div class="page-loader"><div class="spinner spinner-lg"></div>Loading proofs…</div>
+        </div>
+      </div>
+
+      <!-- ══ WALLET ══ -->
+      <div id="page-wallet" class="page-content" style="display:none">
+        <div class="wallet-bar">
+          <div class="wallet-tile" style="border-color:var(--cobalt)">
+            <div class="wallet-tile-label">Available Balance</div>
+            <div class="wallet-tile-amount" style="color:var(--cobalt-light)" id="w-available">₦0.00</div>
+          </div>
+          <div class="wallet-tile" style="border-color:var(--amber)">
+            <div class="wallet-tile-label">Reserved in Tasks</div>
+            <div class="wallet-tile-amount" style="color:var(--amber)" id="w-reserved">₦0.00</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-card-header"><div class="section-card-title">📒 Transaction Ledger</div></div>
+          <div class="section-card-body" id="ledger-list">
+            <div class="page-loader"><div class="spinner spinner-lg"></div>Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ DEPOSIT ══ -->
+      <div id="page-deposit" class="page-content" style="display:none">
+        <div class="two-col">
+          <div class="section-card">
+            <div class="section-card-header"><div class="section-card-title">💳 Request Deposit</div></div>
+            <div class="section-card-body">
+              <div class="alert-banner info visible" style="margin-bottom:16px">
+                💡 Transfer your deposit to our bank account, then submit this form with your payment proof. Admin will verify and credit your wallet (minus <strong>10% platform fee</strong>).
+              </div>
+              <div style="background:var(--midnight);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:20px;font-size:0.85rem">
+                <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;margin-bottom:8px;color:var(--cobalt-light)">Bank Transfer Details</div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted)">Bank</span><span>— (Set in Admin Settings)</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted)">Account</span><span>— (Set in Admin Settings)</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Name</span><span>— (Set in Admin Settings)</span></div>
+              </div>
+              <div class="alert-banner" id="dep-alert"></div>
+              <div class="field-group">
+                <label class="field-label">Amount Deposited (₦)</label>
+                <input class="field-input" type="number" id="dep-amount" placeholder="e.g. 20000" min="1000">
+                <div class="field-hint" id="dep-calc-hint">After 10% fee: <span style="color:var(--green);font-weight:600" id="dep-net-display">₦0.00</span> will be credited to your wallet.</div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Upload Payment Proof</label>
+                <div class="proof-upload-area" id="dep-upload-area" onclick="document.getElementById('dep-file-input').click()" style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;background:var(--midnight);transition:all 0.2s">
+                  <div style="font-size:1.8rem;margin-bottom:8px">🧾</div>
+                  <div style="font-size:0.82rem;color:var(--slate)">Upload bank transfer receipt</div>
+                  <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">JPG, PNG · Max 5MB</div>
+                </div>
+                <input type="file" id="dep-file-input" accept="image/*" style="display:none" onchange="handleDepFile(event)">
+              </div>
+              <button class="btn btn-primary btn-full btn-lg" id="btn-deposit" onclick="submitDeposit()">Submit Deposit Request</button>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header"><div class="section-card-title">📋 Deposit History</div></div>
+            <div class="section-card-body" id="dep-history">
+              <div class="page-loader"><div class="spinner"></div>Loading…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SETTINGS ══ -->
+      <div id="page-settings" class="page-content" style="display:none">
+        <div class="two-col">
+          <div class="section-card">
+            <div class="section-card-header"><div class="section-card-title">👤 My Profile</div></div>
+            <div class="section-card-body">
+              <div class="alert-banner" id="profile-alert"></div>
+              <div class="field-group"><label class="field-label">Full Name</label><input class="field-input" type="text" id="profile-name"></div>
+              <div class="field-group"><label class="field-label">Phone Number</label><input class="field-input" type="text" id="profile-phone"></div>
+              <div class="field-group"><label class="field-label">Email</label><input class="field-input" type="email" id="profile-email" disabled style="opacity:0.5;cursor:not-allowed"></div>
+              <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header"><div class="section-card-title">🔄 Switch Role</div></div>
+            <div class="section-card-body">
+              <p style="font-size:0.82rem;color:var(--muted);line-height:1.6;margin-bottom:16px">
+                You are currently an <strong style="color:var(--cobalt-light)">Advertiser</strong>. Switch to Worker to browse and complete tasks instead.
+              </p>
+              <div style="background:var(--midnight);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:700;margin-bottom:6px">👷 Worker</div>
+                <p style="font-size:0.8rem;color:var(--muted);line-height:1.6">Complete tasks posted by advertisers and earn money directly to your wallet.</p>
+              </div>
+              <div class="alert-banner" id="role-alert"></div>
+              <button class="btn btn-success btn-full" onclick="switchRole('worker')">Switch to Worker</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: CREATE TASK ══ -->
+<div class="modal-overlay" id="create-task-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title">📋 Create New Task</div>
+      <button class="modal-close" onclick="closeModal('create-task-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-banner" id="task-alert"></div>
+      <div class="field-group">
+        <label class="field-label">Task Title</label>
+        <input class="field-input" type="text" id="t-title" placeholder="e.g. Follow our Twitter account and retweet pinned post">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Task Description</label>
+        <textarea class="field-textarea" id="t-desc" placeholder="Describe exactly what workers must do. Include any links, usernames, or specific steps."></textarea>
+      </div>
+      <div class="task-form-grid">
+        <div class="field-group">
+          <label class="field-label">Reward Per Slot (₦)</label>
+          <input class="field-input" type="number" id="t-reward" placeholder="e.g. 500" min="50" oninput="calcTaskCost()">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Number of Slots</label>
+          <input class="field-input" type="number" id="t-slots" placeholder="e.g. 20" min="1" max="500" oninput="calcTaskCost()">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" style="margin-bottom:8px">Proof Type Required</label>
+        <div class="proof-select-row">
+          <div>
+            <input class="proof-opt" type="radio" name="t-proof" id="pt-image" value="image" checked>
+            <label class="proof-opt-label" for="pt-image"><span class="proof-opt-icon">📸</span>Screenshot</label>
+          </div>
+          <div>
+            <input class="proof-opt" type="radio" name="t-proof" id="pt-text" value="text">
+            <label class="proof-opt-label" for="pt-text"><span class="proof-opt-icon">📝</span>Text Only</label>
+          </div>
+          <div>
+            <input class="proof-opt" type="radio" name="t-proof" id="pt-both" value="both">
+            <label class="proof-opt-label" for="pt-both"><span class="proof-opt-icon">📸+📝</span>Both</label>
+          </div>
+        </div>
+      </div>
+      <div class="cost-preview" id="cost-preview" style="display:none">
+        <div class="cost-row"><span style="color:var(--muted)">Slots × Reward</span><span id="cp-slots-reward" style="font-family:'Space Grotesk',sans-serif">₦0</span></div>
+        <div class="cost-row"><span style="color:var(--white);font-weight:600">Total Reserved</span><span id="cp-total" style="color:var(--amber);font-family:'Space Grotesk',sans-serif;font-size:1rem">₦0</span></div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:6px">This amount will be reserved from your wallet. Released if slots go unfilled or submissions are rejected.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('create-task-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-task" onclick="createTask()">
+        <span class="spinner" id="task-spinner" style="display:none"></span>
+        Create Task
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: REVIEW PROOF ══ -->
+<div class="modal-overlay" id="review-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔍 Review Proof</div>
+      <button class="modal-close" onclick="closeModal('review-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:8px;font-size:0.82rem;color:var(--muted)">Worker</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;margin-bottom:4px" id="rv-worker-name"></div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:16px" id="rv-task-name"></div>
+      <img id="rv-image" class="proof-img" src="" alt="Proof screenshot" style="display:none" onclick="window.open(this.src,'_blank')">
+      <div id="rv-text-proof" style="display:none;background:var(--midnight);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:0.85rem;line-height:1.7;margin-bottom:12px;word-break:break-all"></div>
+      <div class="alert-banner" id="rv-alert"></div>
+      <div class="review-actions">
+        <button class="btn btn-success" onclick="reviewSubmission('approved')">✅ Approve</button>
+        <button class="btn btn-danger" onclick="showRejectNote()">❌ Reject</button>
+      </div>
+      <div class="reject-note-area" id="reject-note-area">
+        <div class="field-group" style="margin-top:10px">
+          <label class="field-label">Reason for Rejection (shown to worker)</label>
+          <textarea class="field-textarea" id="reject-note" placeholder="e.g. Screenshot does not match the required task. Please resubmit."></textarea>
+        </div>
+        <button class="btn btn-danger" onclick="reviewSubmission('rejected')">Confirm Rejection</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, getDocs, updateDoc, addDoc,
+  collection, query, where, orderBy, limit, serverTimestamp, increment
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDAbScL9p3caIH9zpW3m9f8D3cWLetfOrs",
+  authDomain: "cunkpay.firebaseapp.com",
+  projectId: "cunkpay",
+  storageBucket: "cunkpay.firebasestorage.app",
+  messagingSenderId: "789585022129",
+  appId: "1:789585022129:web:935f8bef2232a43503e690"
+};
+
+const CLOUDINARY_CLOUD = "your_cloud_name";
+const CLOUDINARY_PRESET = "your_upload_preset";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let currentUserDoc = null;
+let currentSubsFilter = "pending";
+let reviewingSubId = null;
+let reviewingWorkerId = null;
+let reviewingReward = 0;
+let depFile = null;
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = "auth.html"; return; }
+  currentUser = user;
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (!snap.exists()) { window.location.href = "auth.html"; return; }
+  currentUserDoc = snap.data();
+  if (currentUserDoc.status === "suspended") { await signOut(auth); window.location.href = "auth.html"; return; }
+  if (currentUserDoc.role === "admin") { window.location.href = "admin.html"; return; }
+  if (currentUserDoc.role === "worker") { window.location.href = "worker.html"; return; }
+  initDashboard();
+});
+
+function initDashboard() {
+  const d = currentUserDoc;
+  document.getElementById("sb-name").textContent = d.displayName || "Advertiser";
+  document.getElementById("sb-avatar").textContent = (d.displayName || "A")[0].toUpperCase();
+  document.getElementById("profile-name").value = d.displayName || "";
+  document.getElementById("profile-phone").value = d.phone || "";
+  document.getElementById("profile-email").value = d.email || "";
+  updateHeaderBalance(d.walletAvailable || 0);
+  loadDashboard();
+}
+
+function updateHeaderBalance(amt) {
+  document.getElementById("header-balance").textContent = formatNaira(amt);
+}
+
+// ── PAGE NAV ──
+window.showPage = function(page) {
+  document.querySelectorAll(".page-content").forEach(p => p.style.display = "none");
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-" + page).style.display = "block";
+  document.getElementById("page-title").textContent = pageTitles[page] || "Dashboard";
+  const btn = [...document.querySelectorAll(".nav-item")].find(b => b.getAttribute("onclick")?.includes(`'${page}'`));
+  if (btn) btn.classList.add("active");
+  closeSidebar();
+  if (page === "tasks") loadMyTasks();
+  if (page === "submissions") loadSubmissions(currentSubsFilter);
+  if (page === "wallet") loadWallet();
+  if (page === "deposit") loadDepositPage();
+};
+
+const pageTitles = { dashboard: "Dashboard", tasks: "My Tasks", submissions: "Review Proofs", wallet: "My Wallet", deposit: "Deposit Funds", settings: "Settings" };
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  const uid = currentUser.uid;
+  const snap = await getDoc(doc(db, "users", uid));
+  const d = snap.data();
+  currentUserDoc = d;
+
+  document.getElementById("stat-available").textContent = formatNaira(d.walletAvailable || 0);
+  document.getElementById("stat-reserved").textContent = formatNaira(d.walletReserved || 0);
+  updateHeaderBalance(d.walletAvailable || 0);
+
+  const taskQ = query(collection(db, "tasks"), where("advertiserId", "==", uid), where("status", "==", "active"));
+  const taskSnap = await getDocs(taskQ);
+  document.getElementById("stat-tasks").textContent = taskSnap.size;
+
+  const pendQ = query(collection(db, "submissions"), where("advertiserId", "==", uid), where("status", "==", "pending"));
+
+  // We query by taskIds instead since submissions store advertiserId would need to be added
+  // Let's use the tasks we already have
+  let pendingCount = 0;
+  for (const t of taskSnap.docs) {
+    const pq = query(collection(db, "submissions"), where("taskId", "==", t.id), where("status", "==", "pending"));
+    const ps = await getDocs(pq);
+    pendingCount += ps.size;
+  }
+  document.getElementById("stat-pending-proofs").textContent = pendingCount;
+  if (pendingCount > 0) {
+    document.getElementById("pending-badge").textContent = pendingCount;
+    document.getElementById("pending-badge").style.display = "inline";
+  }
+
+  loadDashPendingProofs(uid);
+  loadDashTasks(uid);
+}
+
+async function loadDashTasks(uid) {
+  const q = query(collection(db, "tasks"), where("advertiserId", "==", uid), where("status", "==", "active"), limit(4));
+  const snap = await getDocs(q);
+  const el = document.getElementById("dash-tasks");
+  if (snap.empty) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No active tasks</div><div class="empty-state-desc">Create your first task to start getting results.</div><button class="btn btn-primary btn-sm" onclick="openCreateTaskModal()" style="margin-top:8px">+ Create Task</button></div>';
+    return;
+  }
+  el.innerHTML = snap.docs.map(d => {
+    const t = d.data();
+    const pct = Math.round((t.filledSlots / t.totalSlots) * 100);
+    return `<div style="padding:10px 0;border-bottom:1px solid rgba(30,42,66,0.5)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:0.85rem;font-weight:600">${esc(t.title)}</span>
+        <span style="font-family:'Space Grotesk',sans-serif;color:var(--amber);font-size:0.85rem;font-weight:700">₦${fmtNum(t.rewardPerSlot)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-bottom:4px">
+        <span>${t.filledSlots}/${t.totalSlots} slots filled</span><span>${pct}%</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill ${pct > 75 ? "amber" : "green"}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+}
+
+async function loadDashPendingProofs(uid) {
+  const taskQ = query(collection(db, "tasks"), where("advertiserId", "==", uid));
+  const taskSnap = await getDocs(taskQ);
+  const taskMap = {};
+  taskSnap.docs.forEach(d => { taskMap[d.id] = d.data().title; });
+  const taskIds = Object.keys(taskMap);
+  const el = document.getElementById("dash-pending-proofs");
+
+  if (taskIds.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📸</div><div class="empty-state-title">No proofs yet</div></div>';
+    return;
+  }
+
+  let allPending = [];
+  for (const tid of taskIds.slice(0, 10)) {
+    const q = query(collection(db, "submissions"), where("taskId", "==", tid), where("status", "==", "pending"), limit(3));
+    const s = await getDocs(q);
+    s.docs.forEach(d => allPending.push({ id: d.id, ...d.data(), taskTitle: taskMap[tid] }));
+  }
+
+  if (allPending.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">All caught up</div><div class="empty-state-desc">No pending proofs to review.</div></div>';
+    return;
+  }
+
+  el.innerHTML = allPending.slice(0, 5).map(s => `
+    <div class="sub-row">
+      <div class="sub-row-left">
+        <div class="sub-worker">${esc(s.workerName || "Worker")}</div>
+        <div class="sub-task-name">${esc(s.taskTitle || "—")}</div>
+        <div style="font-size:0.72rem;color:var(--muted)">${formatDate(s.submittedAt)}</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openReviewModal('${s.id}')">Review</button>
+    </div>
+  `).join("");
+}
+
+// ── MY TASKS ──
+async function loadMyTasks() {
+  const uid = currentUser.uid;
+  const q = query(collection(db, "tasks"), where("advertiserId", "==", uid), orderBy("createdAt", "desc"));
+  const snap = await getDocs(q);
+  const tbody = document.getElementById("tasks-tbody");
+  if (snap.empty) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No tasks yet</div><div class="empty-state-desc">Create your first task.</div><button class="btn btn-primary btn-sm" onclick="openCreateTaskModal()" style="margin-top:8px">+ Create Task</button></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = snap.docs.map(d => {
+    const t = d.data();
+    return `<tr>
+      <td style="max-width:200px;word-break:break-word">${esc(t.title)}</td>
+      <td class="mono" style="color:var(--amber)">₦${fmtNum(t.rewardPerSlot)}</td>
+      <td class="mono">${t.filledSlots}/${t.totalSlots}</td>
+      <td><span class="badge badge-pending">${proofLabel(t.proofType)}</span></td>
+      <td><span class="badge badge-${t.status}">${t.status}</span></td>
+      <td>
+        ${t.status === "active" ? `<button class="btn btn-ghost btn-sm" onclick="pauseTask('${d.id}')">Pause</button>` : `<button class="btn btn-success btn-sm" onclick="resumeTask('${d.id}')">Resume</button>`}
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+window.openCreateTaskModal = function() {
+  document.getElementById("task-alert").className = "alert-banner";
+  document.getElementById("t-title").value = "";
+  document.getElementById("t-desc").value = "";
+  document.getElementById("t-reward").value = "";
+  document.getElementById("t-slots").value = "";
+  document.getElementById("pt-image").checked = true;
+  document.getElementById("cost-preview").style.display = "none";
+  openModal("create-task-modal");
+};
+
+window.calcTaskCost = function() {
+  const reward = parseFloat(document.getElementById("t-reward").value) || 0;
+  const slots = parseInt(document.getElementById("t-slots").value) || 0;
+  const total = reward * slots;
+  if (reward > 0 && slots > 0) {
+    document.getElementById("cost-preview").style.display = "block";
+    document.getElementById("cp-slots-reward").textContent = `${slots} × ₦${fmtNum(reward)}`;
+    document.getElementById("cp-total").textContent = formatNaira(total);
+  } else {
+    document.getElementById("cost-preview").style.display = "none";
+  }
+};
+
+window.createTask = async function() {
+  const alertEl = document.getElementById("task-alert");
+  alertEl.className = "alert-banner";
+  const title = document.getElementById("t-title").value.trim();
+  const desc = document.getElementById("t-desc").value.trim();
+  const reward = parseFloat(document.getElementById("t-reward").value);
+  const slots = parseInt(document.getElementById("t-slots").value);
+  const proofType = document.querySelector('input[name="t-proof"]:checked').value;
+
+  if (!title) { showBanner(alertEl, "Please enter a task title.", "error"); return; }
+  if (!desc) { showBanner(alertEl, "Please enter a task description.", "error"); return; }
+  if (!reward || reward < 50) { showBanner(alertEl, "Minimum reward is ₦50 per slot.", "error"); return; }
+  if (!slots || slots < 1) { showBanner(alertEl, "Please enter at least 1 slot.", "error"); return; }
+
+  const totalCost = reward * slots;
+  const snap = await getDoc(doc(db, "users", currentUser.uid));
+  const avail = snap.data().walletAvailable || 0;
+  if (totalCost > avail) {
+    showBanner(alertEl, `Insufficient balance. Task costs ${formatNaira(totalCost)} but you have ${formatNaira(avail)}.`, "error");
+    return;
+  }
+
+  const btn = document.getElementById("btn-create-task");
+  const spinner = document.getElementById("task-spinner");
+  btn.disabled = true; spinner.style.display = "inline-block";
+
+  try {
+    const taskRef = await addDoc(collection(db, "tasks"), {
+      advertiserId: currentUser.uid,
+      advertiserName: currentUserDoc.displayName,
+      title, description: desc,
+      rewardPerSlot: reward,
+      totalSlots: slots, filledSlots: 0,
+      proofType, status: "active",
+      totalBudget: totalCost,
+      createdAt: serverTimestamp()
+    });
+
+    // Reserve the budget from advertiser wallet
+    await updateDoc(doc(db, "users", currentUser.uid), {
+      walletAvailable: increment(-totalCost),
+      walletReserved: increment(totalCost)
+    });
+
+    // Ledger entry
+    await addDoc(collection(db, "ledger"), {
+      userId: currentUser.uid,
+      type: "debit",
+      amount: totalCost,
+      description: `Task budget reserved — "${title}"`,
+      relatedId: taskRef.id,
+      createdAt: serverTimestamp()
+    });
+
+    closeModal("create-task-modal");
+    showToast("Task created! Budget reserved from your wallet.", "success");
+    loadDashboard();
+    loadMyTasks();
+  } catch (e) {
+    showBanner(alertEl, "Failed to create task. Try again.", "error");
+  } finally {
+    btn.disabled = false; spinner.style.display = "none";
+  }
+};
+
+window.pauseTask = async function(taskId) {
+  await updateDoc(doc(db, "tasks", taskId), { status: "paused" });
+  showToast("Task paused.", "info");
+  loadMyTasks();
+};
+window.resumeTask = async function(taskId) {
+  await updateDoc(doc(db, "tasks", taskId), { status: "active" });
+  showToast("Task resumed.", "success");
+  loadMyTasks();
+};
+
+// ── REVIEW PROOFS ──
+let allSubs = [];
+
+async function loadSubmissions(filter) {
+  currentSubsFilter = filter;
+  const uid = currentUser.uid;
+  const taskQ = query(collection(db, "tasks"), where("advertiserId", "==", uid));
+  const taskSnap = await getDocs(taskQ);
+  const taskMap = {};
+  taskSnap.docs.forEach(d => { taskMap[d.id] = d.data().title; });
+
+  let subs = [];
+  for (const tid of Object.keys(taskMap).slice(0, 10)) {
+    const q = query(collection(db, "submissions"), where("taskId", "==", tid), where("status", "==", filter), orderBy("submittedAt", "desc"), limit(20));
+    const s = await getDocs(q);
+    s.docs.forEach(d => subs.push({ id: d.id, ...d.data(), taskTitle: taskMap[tid] }));
+  }
+  allSubs = subs;
+  renderSubs(subs, taskMap);
+}
+
+function renderSubs(subs) {
+  const el = document.getElementById("subs-list");
+  if (subs.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📸</div><div class="empty-state-title">No ${currentSubsFilter} proofs</div></div>`;
+    return;
+  }
+  el.innerHTML = '<div class="section-card"><div class="section-card-body">' + subs.map(s => `
+    <div class="sub-row">
+      <div class="sub-row-left">
+        <div class="sub-worker">${esc(s.workerName || "Worker")}</div>
+        <div class="sub-task-name">${esc(s.taskTitle || "—")} · <span style="color:var(--amber)">₦${fmtNum(s.rewardAmount)}</span></div>
+        <div style="font-size:0.72rem;color:var(--muted)">${formatDate(s.submittedAt)}</div>
+        ${s.reviewNote ? `<div style="font-size:0.75rem;color:var(--red-light);margin-top:4px">Note: ${esc(s.reviewNote)}</div>` : ""}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <span class="badge badge-${s.status}">${s.status}</span>
+        ${s.status === "pending" ? `<button class="btn btn-primary btn-sm" onclick="openReviewModal('${s.id}')">Review</button>` : ""}
+      </div>
+    </div>
+  `).join("") + "</div></div>";
+}
+
+window.filterSubs = function(filter, btn) {
+  document.querySelectorAll(".page-tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  loadSubmissions(filter);
+};
+
+window.openReviewModal = async function(subId) {
+  const snap = await getDoc(doc(db, "submissions", subId));
+  if (!snap.exists()) return;
+  const s = snap.data();
+  reviewingSubId = subId;
+  reviewingWorkerId = s.workerId;
+  reviewingReward = s.rewardAmount || 0;
+
+  document.getElementById("rv-worker-name").textContent = s.workerName || "—";
+  document.getElementById("rv-task-name").textContent = s.taskTitle || "—";
+  document.getElementById("rv-alert").className = "alert-banner";
+  document.getElementById("reject-note-area").className = "reject-note-area";
+  document.getElementById("reject-note").value = "";
+
+  const imgEl = document.getElementById("rv-image");
+  const txtEl = document.getElementById("rv-text-proof");
+
+  if (s.imageUrl) { imgEl.src = s.imageUrl; imgEl.style.display = "block"; } else { imgEl.style.display = "none"; }
+  if (s.textProof) { txtEl.textContent = s.textProof; txtEl.style.display = "block"; } else { txtEl.style.display = "none"; }
+
+  openModal("review-modal");
+};
+
+window.showRejectNote = function() {
+  document.getElementById("reject-note-area").className = "reject-note-area visible";
+};
+
+window.reviewSubmission = async function(decision) {
+  const alertEl = document.getElementById("rv-alert");
+  const note = decision === "rejected" ? document.getElementById("reject-note").value.trim() : null;
+
+  if (decision === "rejected" && !note) {
+    showBanner(alertEl, "Please provide a reason for rejection.", "error");
+    return;
+  }
+
+  try {
+    await updateDoc(doc(db, "submissions", reviewingSubId), {
+      status: decision,
+      reviewNote: note || null,
+      reviewedAt: serverTimestamp()
+    });
+
+    if (decision === "approved") {
+      // Credit worker wallet
+      await updateDoc(doc(db, "users", reviewingWorkerId), {
+        walletAvailable: increment(reviewingReward),
+        totalEarned: increment(reviewingReward)
+      });
+      // Deduct from advertiser reserved
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        walletReserved: increment(-reviewingReward)
+      });
+      // Ledger: worker credit
+      await addDoc(collection(db, "ledger"), {
+        userId: reviewingWorkerId,
+        type: "credit",
+        amount: reviewingReward,
+        description: `Task reward approved`,
+        relatedId: reviewingSubId,
+        createdAt: serverTimestamp()
+      });
+      // Ledger: advertiser debit
+      await addDoc(collection(db, "ledger"), {
+        userId: currentUser.uid,
+        type: "debit",
+        amount: reviewingReward,
+        description: `Proof approved — reward paid to worker`,
+        relatedId: reviewingSubId,
+        createdAt: serverTimestamp()
+      });
+    } else {
+      // Rejection: release reserved slot cost back to advertiser
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        walletAvailable: increment(reviewingReward),
+        walletReserved: increment(-reviewingReward)
+      });
+      // Ledger: advertiser refund
+      await addDoc(collection(db, "ledger"), {
+        userId: currentUser.uid,
+        type: "credit",
+        amount: reviewingReward,
+        description: `Proof rejected — slot budget returned`,
+        relatedId: reviewingSubId,
+        createdAt: serverTimestamp()
+      });
+    }
+
+    closeModal("review-modal");
+    showToast(decision === "approved" ? "Proof approved. Worker wallet credited." : "Proof rejected. Slot budget returned.", decision === "approved" ? "success" : "warning");
+    loadDashboard();
+    if (document.getElementById("page-submissions").style.display !== "none") {
+      loadSubmissions(currentSubsFilter);
+    }
+  } catch (e) {
+    showBanner(alertEl, "Action failed. Please try again.", "error");
+  }
+};
+
+// ── WALLET ──
+async function loadWallet() {
+  const snap = await getDoc(doc(db, "users", currentUser.uid));
+  const d = snap.data();
+  document.getElementById("w-available").textContent = formatNaira(d.walletAvailable || 0);
+  document.getElementById("w-reserved").textContent = formatNaira(d.walletReserved || 0);
+
+  const q = query(collection(db, "ledger"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"), limit(50));
+  const ledSnap = await getDocs(q);
+  const el = document.getElementById("ledger-list");
+  if (ledSnap.empty) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📒</div><div class="empty-state-title">No transactions yet</div></div>';
+    return;
+  }
+  el.innerHTML = ledSnap.docs.map(d => {
+    const l = d.data();
+    const cls = l.type === "credit" ? "amt-cr" : "amt-dr";
+    const sign = l.type === "credit" ? "+" : "-";
+    return `<div class="ledger-row">
+      <div><div class="ledger-desc">${esc(l.description)}</div><div class="ledger-date">${formatDate(l.createdAt)}</div></div>
+      <div class="ledger-amt ${cls}">${sign}₦${fmtNum(l.amount)}</div>
+    </div>`;
+  }).join("");
+}
+
+// ── DEPOSIT ──
+async function loadDepositPage() {
+  const q = query(collection(db, "deposits"), where("advertiserId", "==", currentUser.uid), orderBy("requestedAt", "desc"));
+  const snap = await getDocs(q);
+  const el = document.getElementById("dep-history");
+  if (snap.empty) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💳</div><div class="empty-state-title">No deposits yet</div></div>';
+    return;
+  }
+  el.innerHTML = snap.docs.map(d => {
+    const dep = d.data();
+    return `<div class="ledger-row">
+      <div>
+        <div class="ledger-desc">₦${fmtNum(dep.amount)} deposited</div>
+        <div class="ledger-date">${formatDate(dep.requestedAt)}</div>
+        ${dep.adminNote ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:2px">Note: ${esc(dep.adminNote)}</div>` : ""}
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Space Grotesk',sans-serif;color:var(--green);font-weight:600">+₦${fmtNum(dep.netCredited)}</div>
+        <span class="badge badge-${dep.status}" style="font-size:0.65rem">${dep.status}</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("dep-amount").oninput = function() {
+    const gross = parseFloat(this.value) || 0;
+    const net = gross * 0.9;
+    document.getElementById("dep-net-display").textContent = formatNaira(net);
+  };
+}
+
+window.handleDepFile = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast("File must be under 5MB.", "error"); return; }
+  depFile = file;
+  const area = document.getElementById("dep-upload-area");
+  area.style.borderColor = "var(--green)";
+  area.style.background = "var(--green-dim)";
+  area.innerHTML = `<div style="font-size:1.8rem;margin-bottom:8px">✅</div><div style="font-size:0.82rem;color:var(--green)">${esc(file.name)}</div><div style="font-size:0.72rem;color:var(--muted);margin-top:4px">Click to change</div>`;
+};
+
+window.submitDeposit = async function() {
+  const amount = parseFloat(document.getElementById("dep-amount").value);
+  const alertEl = document.getElementById("dep-alert");
+  alertEl.className = "alert-banner";
+
+  if (!amount || amount < 1000) { showBanner(alertEl, "Minimum deposit is ₦1,000.", "error"); return; }
+  if (!depFile) { showBanner(alertEl, "Please upload your payment proof.", "error"); return; }
+
+  const btn = document.getElementById("btn-deposit");
+  btn.disabled = true; btn.textContent = "Uploading…";
+
+  try {
+    const formData = new FormData();
+    formData.append("file", depFile);
+    formData.append("upload_preset", CLOUDINARY_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: "POST", body: formData });
+    const data = await res.json();
+    if (!data.secure_url) throw new Error("Image upload failed.");
+
+    const fee = amount * 0.1;
+    const net = amount * 0.9;
+
+    await addDoc(collection(db, "deposits"), {
+      advertiserId: currentUser.uid,
+      advertiserName: currentUserDoc.displayName,
+      amount, proofImageUrl: data.secure_url,
+      status: "pending", adminNote: null,
+      feeCharged: fee, netCredited: net,
+      requestedAt: serverTimestamp()
+    });
+
+    showToast("Deposit request submitted. Admin will verify and credit your wallet.", "success");
+    document.getElementById("dep-amount").value = "";
+    depFile = null;
+    const area = document.getElementById("dep-upload-area");
+    area.style.borderColor = "";
+    area.style.background = "";
+    area.innerHTML = '<div style="font-size:1.8rem;margin-bottom:8px">🧾</div><div style="font-size:0.82rem;color:var(--slate)">Upload bank transfer receipt</div><div style="font-size:0.72rem;color:var(--muted);margin-top:4px">JPG, PNG · Max 5MB</div>';
+    loadDepositPage();
+  } catch (e) {
+    showBanner(alertEl, "Deposit submission failed. Try again.", "error");
+  } finally {
+    btn.disabled = false; btn.textContent = "Submit Deposit Request";
+  }
+};
+
+// ── PROFILE ──
+window.saveProfile = async function() {
+  const name = document.getElementById("profile-name").value.trim();
+  const phone = document.getElementById("profile-phone").value.trim();
+  const alertEl = document.getElementById("profile-alert");
+  if (!name) { showBanner(alertEl, "Name cannot be empty.", "error"); return; }
+  try {
+    await updateDoc(doc(db, "users", currentUser.uid), { displayName: name, phone });
+    await updateProfile(currentUser, { displayName: name });
+    currentUserDoc.displayName = name;
+    document.getElementById("sb-name").textContent = name;
+    document.getElementById("sb-avatar").textContent = name[0].toUpperCase();
+    showBanner(alertEl, "Profile updated.", "success");
+  } catch (e) {
+    showBanner(alertEl, "Update failed.", "error");
+  }
+};
+
+window.switchRole = async function(newRole) {
+  try {
+    await updateDoc(doc(db, "users", currentUser.uid), { role: newRole });
+    showToast("Role switched! Redirecting…", "success");
+    setTimeout(() => { window.location.href = newRole + ".html"; }, 1000);
+  } catch (e) {
+    showBanner(document.getElementById("role-alert"), "Failed to switch role.", "error");
+  }
+};
+
+window.handleSignOut = async function() { await signOut(auth); window.location.href = "auth.html"; };
+
+// ── HELPERS ──
+function formatNaira(n) { return "₦" + fmtNum(n); }
+function fmtNum(n) { return (parseFloat(n)||0).toLocaleString("en-NG", { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+function formatDate(ts) { if (!ts) return "—"; const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString("en-GB", {day:"2-digit",month:"short",year:"numeric"}) + " " + d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}); }
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function proofLabel(t) { return t === "image" ? "📸 Screenshot" : t === "text" ? "📝 Text" : "📸+📝 Both"; }
+window.openModal = function(id) { document.getElementById(id).classList.add("open"); }
+window.closeModal = function(id) { document.getElementById(id).classList.remove("open"); }
+window.toggleSidebar = function() { document.getElementById("sidebar").classList.toggle("open"); }
+function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); }
+function showBanner(el, msg, type) { el.textContent = msg; el.className = `alert-banner ${type} visible`; }
+window.showToast = function(msg, type="info") {
+  const c = document.getElementById("toast-container");
+  const t = document.createElement("div");
+  t.className = `toast toast-${type}`; t.textContent = msg; c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+};
+document.querySelectorAll(".modal-overlay").forEach(o => { o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); }); });
+</script>
+</body>
+</html>

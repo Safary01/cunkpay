@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CunkPay — Worker Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cunkpay.css">
+<style>
+  .slots-bar { margin-top: 10px; }
+  .slots-label { font-size: 0.72rem; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .proof-upload-area {
+    border: 2px dashed var(--border); border-radius: 10px;
+    padding: 24px; text-align: center; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--midnight);
+  }
+  .proof-upload-area:hover { border-color: var(--cobalt); background: var(--cobalt-dim); }
+  .proof-upload-area.has-file { border-color: var(--green); background: var(--green-dim); }
+  .upload-icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .upload-label { font-size: 0.82rem; color: var(--slate); }
+  .upload-hint { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+  #file-input { display: none; }
+  .task-detail-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
+  .task-detail-reward { font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--amber); }
+  .task-description { font-size: 0.875rem; color: var(--slate); line-height: 1.7; margin-bottom: 16px; background: var(--midnight); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .submission-status-card { border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .sub-pending { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.2); }
+  .sub-approved { background: var(--green-dim); border: 1px solid rgba(16,185,129,0.2); }
+  .sub-rejected { background: var(--red-dim); border: 1px solid rgba(239,68,68,0.2); }
+  .ledger-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid rgba(30,42,66,0.5); }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-desc { font-size: 0.82rem; color: var(--off-white); }
+  .ledger-date { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+  .ledger-amt { font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; font-weight: 600; }
+  .amt-cr { color: var(--green); }
+  .amt-dr { color: var(--red); }
+  .amt-pend { color: var(--amber); }
+  .switch-role-note { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
+  .role-switch-card { background: var(--midnight); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+</style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<div class="app-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">Cunk<span>Pay</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sb-avatar">?</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sb-name">Loading…</div>
+        <div class="sidebar-user-role role-tag-worker">Worker</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span> Dashboard</button>
+      <button class="nav-item" onclick="showPage('tasks')"><span class="nav-icon">📋</span> Browse Tasks</button>
+      <button class="nav-item" onclick="showPage('my-submissions')"><span class="nav-icon">📸</span> My Submissions</button>
+      <div class="nav-section-label">Wallet</div>
+      <button class="nav-item" onclick="showPage('wallet')"><span class="nav-icon">💰</span> My Wallet</button>
+      <button class="nav-item" onclick="showPage('withdraw')"><span class="nav-icon">🏦</span> Withdraw</button>
+      <div class="nav-section-label">Account</div>
+      <button class="nav-item" onclick="showPage('settings')"><span class="nav-icon">⚙️</span> Settings</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item" onclick="handleSignOut()"><span class="nav-icon">🚪</span> Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main-content">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <div class="header-page-title" id="page-title">Dashboard</div>
+      </div>
+      <div class="header-right">
+        <span style="font-size:0.8rem;color:var(--muted)">Balance:</span>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--green);font-size:0.95rem" id="header-balance">₦0.00</span>
+      </div>
+    </header>
+
+    <div class="page-body">
+
+      <!-- ══ PAGE: DASHBOARD ══ -->
+      <div id="page-dashboard" class="page-content">
+        <div class="stats-row">
+          <div class="stat-card stat-green">
+            <span class="stat-card-icon">💰</span>
+            <div class="stat-card-value" id="stat-available">₦0</div>
+            <div class="stat-card-label">Available Balance</div>
+          </div>
+          <div class="stat-card stat-amber">
+            <span class="stat-card-icon">⏳</span>
+            <div class="stat-card-value" id="stat-pending">₦0</div>
+            <div class="stat-card-label">Pending Balance</div>
+          </div>
+          <div class="stat-card stat-cobalt">
+            <span class="stat-card-icon">✅</span>
+            <div class="stat-card-value" id="stat-completed">0</div>
+            <div class="stat-card-label">Tasks Completed</div>
+          </div>
+          <div class="stat-card stat-purple">
+            <span class="stat-card-icon">📈</span>
+            <div class="stat-card-value" id="stat-total-earned">₦0</div>
+            <div class="stat-card-label">Total Earned</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <!-- Recent submissions -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">📸 Recent Submissions</div>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('my-submissions')">View all</button>
+            </div>
+            <div class="section-card-body" id="dash-submissions">
+              <div class="page-loader"><div class="spinner spinner-lg"></div>Loading…</div>
+            </div>
+          </div>
+
+          <!-- Available tasks preview -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">📋 Available Tasks</div>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('tasks')">Browse all</button>
+            </div>
+            <div class="section-card-body" id="dash-tasks">
+              <div class="page-loader"><div class="spinner spinner-lg"></div>Loading…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: BROWSE TASKS ══ -->
+      <div id="page-tasks" class="page-content" style="display:none">
+        <div class="section-card">
+          <div class="section-card-header">
+            <div class="section-card-title">📋 Available Tasks</div>
+            <div style="font-size:0.78rem;color:var(--muted)" id="task-count">Loading…</div>
+          </div>
+          <div class="section-card-body" id="tasks-list">
+            <div class="page-loader"><div class="spinner spinner-lg"></div>Loading tasks…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: MY SUBMISSIONS ══ -->
+      <div id="page-my-submissions" class="page-content" style="display:none">
+        <div class="section-card">
+          <div class="section-card-header">
+            <div class="section-card-title">📸 My Submissions</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table" id="submissions-table">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Reward</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th>Review Note</th>
+                </tr>
+              </thead>
+              <tbody id="submissions-tbody">
+                <tr><td colspan="5"><div class="page-loader"><div class="spinner"></div>Loading…</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: WALLET ══ -->
+      <div id="page-wallet" class="page-content" style="display:none">
+        <div class="wallet-bar">
+          <div class="wallet-tile" style="border-color:var(--green)">
+            <div class="wallet-tile-label">Available Balance</div>
+            <div class="wallet-tile-amount" style="color:var(--green)" id="w-available">₦0.00</div>
+          </div>
+          <div class="wallet-tile" style="border-color:var(--amber)">
+            <div class="wallet-tile-label">Pending / Reserved</div>
+            <div class="wallet-tile-amount" style="color:var(--amber)" id="w-pending">₦0.00</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-card-header">
+            <div class="section-card-title">📒 Transaction Ledger</div>
+          </div>
+          <div class="section-card-body" id="ledger-list">
+            <div class="page-loader"><div class="spinner spinner-lg"></div>Loading ledger…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: WITHDRAW ══ -->
+      <div id="page-withdraw" class="page-content" style="display:none">
+        <div class="two-col">
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">🏦 Request Withdrawal</div>
+            </div>
+            <div class="section-card-body">
+              <div class="alert-banner info visible" style="margin-bottom:16px">
+                💡 Withdrawals are processed manually by admin. A <strong>10% fee</strong> is deducted from the amount you request. Ensure your bank details are correct.
+              </div>
+              <div class="alert-banner" id="wd-alert"></div>
+              <div class="field-group">
+                <label class="field-label">Amount to Withdraw (₦)</label>
+                <input class="field-input" type="number" id="wd-amount" placeholder="e.g. 5000" min="500">
+                <div class="field-hint">Minimum: ₦500. Available: <span id="wd-available-display" style="color:var(--green);font-weight:600">₦0</span></div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Bank Name</label>
+                <input class="field-input" type="text" id="wd-bank" placeholder="e.g. First Bank">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Account Number</label>
+                <input class="field-input" type="text" id="wd-accnum" placeholder="10-digit account number" maxlength="10">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Account Name</label>
+                <input class="field-input" type="text" id="wd-accname" placeholder="Name on the bank account">
+              </div>
+              <div style="background:var(--midnight);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;font-size:0.82rem">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                  <span style="color:var(--muted)">Amount requested</span>
+                  <span id="wd-calc-gross" style="font-family:'Space Grotesk',sans-serif;font-weight:600">₦0.00</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                  <span style="color:var(--muted)">Platform fee (10%)</span>
+                  <span id="wd-calc-fee" style="color:var(--red);font-family:'Space Grotesk',sans-serif;font-weight:600">-₦0.00</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px;margin-top:4px">
+                  <span style="color:var(--white);font-weight:600">You receive</span>
+                  <span id="wd-calc-net" style="color:var(--green);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem">₦0.00</span>
+                </div>
+              </div>
+              <button class="btn btn-success btn-full btn-lg" id="btn-withdraw" onclick="submitWithdrawal()">Request Withdrawal</button>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">📋 Withdrawal History</div>
+            </div>
+            <div class="section-card-body" id="wd-history">
+              <div class="page-loader"><div class="spinner"></div>Loading…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: SETTINGS ══ -->
+      <div id="page-settings" class="page-content" style="display:none">
+        <div class="two-col">
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">👤 My Profile</div>
+            </div>
+            <div class="section-card-body">
+              <div class="alert-banner" id="profile-alert"></div>
+              <div class="field-group">
+                <label class="field-label">Full Name</label>
+                <input class="field-input" type="text" id="profile-name">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Phone Number</label>
+                <input class="field-input" type="text" id="profile-phone">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Email Address</label>
+                <input class="field-input" type="email" id="profile-email" disabled style="opacity:0.5;cursor:not-allowed">
+                <div class="field-hint">Email cannot be changed here.</div>
+              </div>
+              <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">🔄 Switch Role</div>
+            </div>
+            <div class="section-card-body">
+              <p class="switch-role-note" style="margin-bottom:16px">
+                You are currently a <strong style="color:var(--green)">Worker</strong>. Switching to Advertiser lets you post tasks and hire workers. Your wallet balance is preserved when switching.
+              </p>
+              <div class="role-switch-card" style="margin-bottom:16px">
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:700;margin-bottom:6px">📢 Advertiser</div>
+                <p style="font-size:0.8rem;color:var(--muted);line-height:1.6">Post tasks, fund campaigns, review proof submissions, grow your brand.</p>
+              </div>
+              <div class="alert-banner" id="role-alert"></div>
+              <button class="btn btn-amber btn-full" onclick="switchRole('advertiser')">Switch to Advertiser</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-body -->
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- ══ MODAL: TASK DETAIL / SUBMIT PROOF ══ -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-task-title">Task Detail</div>
+      <button class="modal-close" onclick="closeModal('task-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="task-detail-header">
+        <div>
+          <span class="badge badge-active" id="modal-proof-badge">Image</span>
+          <div style="font-size:0.78rem;color:var(--muted);margin-top:6px" id="modal-slots-info"></div>
+        </div>
+        <div class="task-detail-reward" id="modal-reward">₦0</div>
+      </div>
+      <div class="task-description" id="modal-description"></div>
+      <div id="modal-already-submitted" style="display:none">
+        <div class="submission-status-card" id="modal-sub-status-card">
+          <div style="font-weight:700;margin-bottom:4px" id="modal-sub-status-label"></div>
+          <div style="font-size:0.8rem;color:var(--muted)" id="modal-sub-review-note"></div>
+        </div>
+      </div>
+      <div id="modal-proof-form">
+        <div class="divider-label">Submit Your Proof</div>
+        <div class="alert-banner" id="proof-alert"></div>
+        <div id="proof-image-section">
+          <div class="field-group">
+            <label class="field-label">Proof Screenshot</label>
+            <div class="proof-upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+              <div class="upload-icon">📷</div>
+              <div class="upload-label">Click to upload screenshot</div>
+              <div class="upload-hint">JPG, PNG · Max 5MB</div>
+            </div>
+            <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)">
+          </div>
+        </div>
+        <div id="proof-text-section">
+          <div class="field-group">
+            <label class="field-label">Text Proof</label>
+            <textarea class="field-textarea" id="proof-text" placeholder="Paste your username, comment, link, or proof text here…"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" id="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('task-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-submit-proof" onclick="submitProof()">
+        <span class="spinner" id="proof-spinner" style="display:none"></span>
+        Submit Proof
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     FIREBASE + CLOUDINARY SCRIPTS
+══════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, getDocs, updateDoc, addDoc, setDoc,
+  collection, query, where, orderBy, limit, serverTimestamp, increment
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDAbScL9p3caIH9zpW3m9f8D3cWLetfOrs",
+  authDomain: "cunkpay.firebaseapp.com",
+  projectId: "cunkpay",
+  storageBucket: "cunkpay.firebasestorage.app",
+  messagingSenderId: "789585022129",
+  appId: "1:789585022129:web:935f8bef2232a43503e690"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const CLOUDINARY_CLOUD = "your_cloud_name"; // ← Replace with your Cloudinary cloud name
+const CLOUDINARY_PRESET = "your_upload_preset"; // ← Replace with your unsigned upload preset
+
+let currentUser = null;
+let currentUserDoc = null;
+let selectedTask = null;
+let selectedFile = null;
+
+// ── AUTH GUARD ──
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = "auth.html"; return; }
+  currentUser = user;
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (!snap.exists()) { window.location.href = "auth.html"; return; }
+  currentUserDoc = snap.data();
+  if (currentUserDoc.status === "suspended") { await signOut(auth); window.location.href = "auth.html"; return; }
+  if (currentUserDoc.role === "admin") { window.location.href = "admin.html"; return; }
+  if (currentUserDoc.role === "advertiser") { window.location.href = "advertiser.html"; return; }
+  initDashboard();
+});
+
+function initDashboard() {
+  const d = currentUserDoc;
+  document.getElementById("sb-name").textContent = d.displayName || "Worker";
+  document.getElementById("sb-avatar").textContent = (d.displayName || "W")[0].toUpperCase();
+  document.getElementById("profile-name").value = d.displayName || "";
+  document.getElementById("profile-phone").value = d.phone || "";
+  document.getElementById("profile-email").value = d.email || "";
+  updateHeaderBalance(d.walletAvailable || 0);
+  loadDashboard();
+}
+
+function updateHeaderBalance(amt) {
+  document.getElementById("header-balance").textContent = formatNaira(amt);
+}
+
+// ── PAGE NAVIGATION ──
+window.showPage = function(page) {
+  document.querySelectorAll(".page-content").forEach(p => p.style.display = "none");
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-" + page).style.display = "block";
+  document.getElementById("page-title").textContent = pageTitles[page] || "Dashboard";
+  const btn = [...document.querySelectorAll(".nav-item")].find(b => b.getAttribute("onclick")?.includes(`'${page}'`));
+  if (btn) btn.classList.add("active");
+  closeSidebar();
+
+  if (page === "tasks") loadTasks();
+  if (page === "my-submissions") loadSubmissions();
+  if (page === "wallet") loadWallet();
+  if (page === "withdraw") loadWithdrawPage();
+};
+
+const pageTitles = { dashboard: "Dashboard", tasks: "Browse Tasks", "my-submissions": "My Submissions", wallet: "My Wallet", withdraw: "Withdraw Funds", settings: "Settings" };
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  const uid = currentUser.uid;
+  const snap = await getDoc(doc(db, "users", uid));
+  const d = snap.data();
+  currentUserDoc = d;
+
+  document.getElementById("stat-available").textContent = formatNaira(d.walletAvailable || 0);
+  document.getElementById("stat-pending").textContent = formatNaira(d.walletReserved || 0);
+  document.getElementById("stat-total-earned").textContent = formatNaira(d.totalEarned || 0);
+  updateHeaderBalance(d.walletAvailable || 0);
+
+  // Count completed submissions
+  const subQ = query(collection(db, "submissions"), where("workerId", "==", uid), where("status", "==", "approved"));
+  const subSnap = await getDocs(subQ);
+  document.getElementById("stat-completed").textContent = subSnap.size;
+
+  loadDashSubmissions(uid);
+  loadDashTasks(uid);
+}
+
+async function loadDashSubmissions(uid) {
+  const q = query(collection(db, "submissions"), where("workerId", "==", uid), orderBy("submittedAt", "desc"), limit(5));
+  const snap = await getDocs(q);
+  const el = document.getElementById("dash-submissions");
+  if (snap.empty) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📸</div><div class="empty-state-title">No submissions yet</div><div class="empty-state-desc">Accept a task and submit proof to start earning.</div></div>'; return; }
+
+  let html = "";
+  for (const d of snap.docs) {
+    const s = d.data();
+    const taskSnap = await getDoc(doc(db, "tasks", s.taskId));
+    const taskTitle = taskSnap.exists() ? taskSnap.data().title : "Unknown task";
+    html += `<div class="ledger-row">
+      <div><div class="ledger-desc">${esc(taskTitle)}</div><div class="ledger-date">${formatDate(s.submittedAt)}</div></div>
+      <span class="badge badge-${s.status}">${s.status}</span>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+async function loadDashTasks(uid) {
+  const q = query(collection(db, "tasks"), where("status", "==", "active"), limit(4));
+  const snap = await getDocs(q);
+  const el = document.getElementById("dash-tasks");
+  if (snap.empty) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No tasks yet</div><div class="empty-state-desc">Check back soon — advertisers are adding tasks.</div></div>'; return; }
+  el.innerHTML = snap.docs.map(d => taskCardHTML(d.id, d.data())).join("");
+}
+
+// ── TASKS ──
+async function loadTasks() {
+  const uid = currentUser.uid;
+  const el = document.getElementById("tasks-list");
+  el.innerHTML = '<div class="page-loader"><div class="spinner spinner-lg"></div>Loading tasks…</div>';
+
+  // Get tasks the worker already submitted to
+  const mySubQ = query(collection(db, "submissions"), where("workerId", "==", uid));
+  const mySubSnap = await getDocs(mySubQ);
+  const submittedTaskIds = new Set(mySubSnap.docs.map(d => d.data().taskId));
+
+  const q = query(collection(db, "tasks"), where("status", "==", "active"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(q);
+
+  document.getElementById("task-count").textContent = `${snap.size} task${snap.size !== 1 ? "s" : ""} available`;
+
+  if (snap.empty) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No tasks available</div><div class="empty-state-desc">Check back soon.</div></div>';
+    return;
+  }
+
+  let html = "";
+  for (const d of snap.docs) {
+    const task = d.data();
+    const alreadyDone = submittedTaskIds.has(d.id);
+    const full = task.filledSlots >= task.totalSlots;
+    html += taskCardHTML(d.id, task, alreadyDone, full);
+  }
+  el.innerHTML = html;
+}
+
+function taskCardHTML(id, task, alreadyDone = false, full = false) {
+  const pct = Math.round((task.filledSlots / task.totalSlots) * 100);
+  return `<div class="task-card" onclick="openTaskModal('${id}')">
+    <div class="task-card-top">
+      <div class="task-card-title">${esc(task.title)}</div>
+      <div class="task-card-reward">₦${fmtNum(task.rewardPerSlot)}</div>
+    </div>
+    <div class="task-card-meta">
+      <span class="task-meta-item">📸 ${proofLabel(task.proofType)}</span>
+      <span class="task-meta-item">👥 ${task.filledSlots}/${task.totalSlots} slots</span>
+      ${alreadyDone ? '<span class="badge badge-approved" style="font-size:0.68rem">✓ Submitted</span>' : ""}
+      ${full ? '<span class="badge badge-closed" style="font-size:0.68rem">Full</span>' : ""}
+    </div>
+    <div class="slots-bar">
+      <div class="progress-bar-wrap"><div class="progress-bar-fill ${pct > 75 ? "amber" : "green"}" style="width:${pct}%"></div></div>
+    </div>
+  </div>`;
+}
+
+window.openTaskModal = async function(taskId) {
+  const snap = await getDoc(doc(db, "tasks", taskId));
+  if (!snap.exists()) return;
+  selectedTask = { id: taskId, ...snap.data() };
+  const task = selectedTask;
+
+  document.getElementById("modal-task-title").textContent = task.title;
+  document.getElementById("modal-reward").textContent = "₦" + fmtNum(task.rewardPerSlot);
+  document.getElementById("modal-description").textContent = task.description;
+  document.getElementById("modal-slots-info").textContent = `${task.filledSlots} of ${task.totalSlots} slots filled`;
+  document.getElementById("modal-proof-badge").textContent = proofLabel(task.proofType);
+
+  // Determine sections to show
+  const showImg = task.proofType === "image" || task.proofType === "both";
+  const showTxt = task.proofType === "text" || task.proofType === "both";
+  document.getElementById("proof-image-section").style.display = showImg ? "block" : "none";
+  document.getElementById("proof-text-section").style.display = showTxt ? "block" : "none";
+
+  // Check if already submitted
+  const subQ = query(collection(db, "submissions"), where("workerId", "==", currentUser.uid), where("taskId", "==", taskId));
+  const subSnap = await getDocs(subQ);
+
+  if (!subSnap.empty) {
+    const sub = subSnap.docs[0].data();
+    document.getElementById("modal-already-submitted").style.display = "block";
+    document.getElementById("modal-proof-form").style.display = "none";
+    document.getElementById("modal-footer").style.display = "none";
+    const card = document.getElementById("modal-sub-status-card");
+    card.className = "submission-status-card sub-" + sub.status;
+    document.getElementById("modal-sub-status-label").textContent = statusMsg(sub.status);
+    document.getElementById("modal-sub-review-note").textContent = sub.reviewNote || "";
+  } else if (task.filledSlots >= task.totalSlots) {
+    document.getElementById("modal-already-submitted").style.display = "block";
+    document.getElementById("modal-proof-form").style.display = "none";
+    document.getElementById("modal-footer").style.display = "none";
+    const card = document.getElementById("modal-sub-status-card");
+    card.className = "submission-status-card sub-rejected";
+    document.getElementById("modal-sub-status-label").textContent = "This task is fully filled.";
+    document.getElementById("modal-sub-review-note").textContent = "All available slots have been taken.";
+  } else {
+    document.getElementById("modal-already-submitted").style.display = "none";
+    document.getElementById("modal-proof-form").style.display = "block";
+    document.getElementById("modal-footer").style.display = "flex";
+    document.getElementById("proof-text").value = "";
+    document.getElementById("upload-area").className = "proof-upload-area";
+    document.getElementById("upload-area").innerHTML = '<div class="upload-icon">📷</div><div class="upload-label">Click to upload screenshot</div><div class="upload-hint">JPG, PNG · Max 5MB</div>';
+    selectedFile = null;
+  }
+
+  document.getElementById("proof-alert").className = "alert-banner";
+  openModal("task-modal");
+};
+
+window.handleFileSelect = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast("File must be under 5MB.", "error"); return; }
+  selectedFile = file;
+  const area = document.getElementById("upload-area");
+  area.className = "proof-upload-area has-file";
+  area.innerHTML = `<div class="upload-icon">✅</div><div class="upload-label">${esc(file.name)}</div><div class="upload-hint">${(file.size/1024).toFixed(0)} KB · Click to change</div>`;
+};
+
+window.submitProof = async function() {
+  const task = selectedTask;
+  if (!task) return;
+
+  const btn = document.getElementById("btn-submit-proof");
+  const spinner = document.getElementById("proof-spinner");
+  const alertEl = document.getElementById("proof-alert");
+  alertEl.className = "alert-banner";
+
+  const showImg = task.proofType === "image" || task.proofType === "both";
+  const showTxt = task.proofType === "text" || task.proofType === "both";
+  const textProof = document.getElementById("proof-text").value.trim();
+
+  if (showImg && !selectedFile) { showBanner(alertEl, "Please upload a screenshot as proof.", "error"); return; }
+  if (showTxt && !textProof) { showBanner(alertEl, "Please enter your text proof.", "error"); return; }
+
+  btn.disabled = true; spinner.style.display = "inline-block";
+
+  try {
+    let imageUrl = null;
+
+    if (showImg && selectedFile) {
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: "POST", body: formData });
+      const data = await res.json();
+      if (!data.secure_url) throw new Error("Image upload failed.");
+      imageUrl = data.secure_url;
+    }
+
+    // Write submission document
+    await addDoc(collection(db, "submissions"), {
+      taskId: task.id,
+      workerId: currentUser.uid,
+      workerName: currentUserDoc.displayName,
+      taskTitle: task.title,
+      rewardAmount: task.rewardPerSlot,
+      imageUrl: imageUrl || null,
+      textProof: textProof || null,
+      status: "pending",
+      reviewNote: null,
+      submittedAt: serverTimestamp(),
+      reviewedAt: null
+    });
+
+    // Increment filled slots on task
+    await updateDoc(doc(db, "tasks", task.id), { filledSlots: increment(1) });
+
+    closeModal("task-modal");
+    showToast("Proof submitted! Awaiting advertiser review.", "success");
+    loadDashboard();
+
+  } catch (err) {
+    showBanner(alertEl, err.message || "Submission failed. Try again.", "error");
+  } finally {
+    btn.disabled = false; spinner.style.display = "none";
+  }
+};
+
+// ── MY SUBMISSIONS ──
+async function loadSubmissions() {
+  const uid = currentUser.uid;
+  const q = query(collection(db, "submissions"), where("workerId", "==", uid), orderBy("submittedAt", "desc"));
+  const snap = await getDocs(q);
+  const tbody = document.getElementById("submissions-tbody");
+  if (snap.empty) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">📸</div><div class="empty-state-title">No submissions yet</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = snap.docs.map(d => {
+    const s = d.data();
+    return `<tr>
+      <td>${esc(s.taskTitle || "—")}</td>
+      <td class="mono" style="color:var(--amber)">₦${fmtNum(s.rewardAmount || 0)}</td>
+      <td><span class="badge badge-${s.status}">${s.status}</span></td>
+      <td style="color:var(--muted);font-size:0.78rem">${formatDate(s.submittedAt)}</td>
+      <td style="color:var(--muted);font-size:0.78rem">${s.reviewNote || "—"}</td>
+    </tr>`;
+  }).join("");
+}
+
+// ── WALLET ──
+async function loadWallet() {
+  const uid = currentUser.uid;
+  const snap = await getDoc(doc(db, "users", uid));
+  const d = snap.data();
+  document.getElementById("w-available").textContent = formatNaira(d.walletAvailable || 0);
+  document.getElementById("w-pending").textContent = formatNaira(d.walletReserved || 0);
+
+  // Ledger
+  const q = query(collection(db, "ledger"), where("userId", "==", uid), orderBy("createdAt", "desc"), limit(50));
+  const ledSnap = await getDocs(q);
+  const el = document.getElementById("ledger-list");
+  if (ledSnap.empty) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📒</div><div class="empty-state-title">No transactions yet</div><div class="empty-state-desc">Your transaction history will appear here.</div></div>';
+    return;
+  }
+  el.innerHTML = ledSnap.docs.map(d => {
+    const l = d.data();
+    const cls = l.type === "credit" ? "amt-cr" : l.type === "pending" ? "amt-pend" : "amt-dr";
+    const sign = l.type === "credit" ? "+" : l.type === "pending" ? "" : "-";
+    return `<div class="ledger-row">
+      <div><div class="ledger-desc">${esc(l.description)}</div><div class="ledger-date">${formatDate(l.createdAt)} · ${l.type}</div></div>
+      <div class="ledger-amt ${cls}">${sign}₦${fmtNum(Math.abs(l.amount))}</div>
+    </div>`;
+  }).join("");
+}
+
+// ── WITHDRAW ──
+async function loadWithdrawPage() {
+  const snap = await getDoc(doc(db, "users", currentUser.uid));
+  const avail = snap.data().walletAvailable || 0;
+  document.getElementById("wd-available-display").textContent = formatNaira(avail);
+
+  // Live fee calc
+  document.getElementById("wd-amount").oninput = function() {
+    const gross = parseFloat(this.value) || 0;
+    const fee = gross * 0.1;
+    const net = gross - fee;
+    document.getElementById("wd-calc-gross").textContent = formatNaira(gross);
+    document.getElementById("wd-calc-fee").textContent = "-" + formatNaira(fee);
+    document.getElementById("wd-calc-net").textContent = formatNaira(net);
+  };
+
+  // Withdrawal history
+  const q = query(collection(db, "withdrawals"), where("workerId", "==", currentUser.uid), orderBy("requestedAt", "desc"));
+  const snap2 = await getDocs(q);
+  const el = document.getElementById("wd-history");
+  if (snap2.empty) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏦</div><div class="empty-state-title">No withdrawals yet</div></div>';
+    return;
+  }
+  el.innerHTML = snap2.docs.map(d => {
+    const w = d.data();
+    return `<div class="ledger-row">
+      <div><div class="ledger-desc">${esc(w.bankName)} ••••${String(w.accountNumber).slice(-4)}</div><div class="ledger-date">${formatDate(w.requestedAt)}</div></div>
+      <div style="text-align:right">
+        <div class="ledger-amt amt-cr">₦${fmtNum(w.netPaid)}</div>
+        <span class="badge badge-${w.status}" style="font-size:0.65rem">${w.status}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+window.submitWithdrawal = async function() {
+  const amount = parseFloat(document.getElementById("wd-amount").value);
+  const bank = document.getElementById("wd-bank").value.trim();
+  const accnum = document.getElementById("wd-accnum").value.trim();
+  const accname = document.getElementById("wd-accname").value.trim();
+  const alertEl = document.getElementById("wd-alert");
+  alertEl.className = "alert-banner";
+
+  if (!amount || amount < 500) { showBanner(alertEl, "Minimum withdrawal is ₦500.", "error"); return; }
+  if (!bank) { showBanner(alertEl, "Please enter your bank name.", "error"); return; }
+  if (!accnum || accnum.length < 10) { showBanner(alertEl, "Please enter a valid 10-digit account number.", "error"); return; }
+  if (!accname) { showBanner(alertEl, "Please enter the account name.", "error"); return; }
+
+  const snap = await getDoc(doc(db, "users", currentUser.uid));
+  const avail = snap.data().walletAvailable || 0;
+  if (amount > avail) { showBanner(alertEl, `Insufficient balance. Available: ${formatNaira(avail)}`, "error"); return; }
+
+  const btn = document.getElementById("btn-withdraw");
+  btn.disabled = true; btn.textContent = "Submitting…";
+
+  try {
+    const fee = amount * 0.1;
+    const net = amount - fee;
+
+    await addDoc(collection(db, "withdrawals"), {
+      workerId: currentUser.uid,
+      workerName: currentUserDoc.displayName,
+      amount, bankName: bank, accountNumber: accnum, accountName: accname,
+      status: "pending", feeCharged: fee, netPaid: net,
+      requestedAt: serverTimestamp()
+    });
+
+    // Lock balance to pending
+    await updateDoc(doc(db, "users", currentUser.uid), {
+      walletAvailable: increment(-amount),
+      walletReserved: increment(amount)
+    });
+
+    // Ledger entry
+    await addDoc(collection(db, "ledger"), {
+      userId: currentUser.uid,
+      type: "pending",
+      amount, description: `Withdrawal request — ${bank} ••••${accnum.slice(-4)}`,
+      relatedId: null, createdAt: serverTimestamp()
+    });
+
+    showToast("Withdrawal request submitted. Admin will process it shortly.", "success");
+    document.getElementById("wd-amount").value = "";
+    document.getElementById("wd-bank").value = "";
+    document.getElementById("wd-accnum").value = "";
+    document.getElementById("wd-accname").value = "";
+    loadWithdrawPage();
+    loadDashboard();
+  } catch (err) {
+    showBanner(alertEl, "Failed to submit withdrawal. Please try again.", "error");
+  } finally {
+    btn.disabled = false; btn.textContent = "Request Withdrawal";
+  }
+};
+
+// ── PROFILE ──
+window.saveProfile = async function() {
+  const name = document.getElementById("profile-name").value.trim();
+  const phone = document.getElementById("profile-phone").value.trim();
+  const alertEl = document.getElementById("profile-alert");
+  if (!name) { showBanner(alertEl, "Name cannot be empty.", "error"); return; }
+  try {
+    await updateDoc(doc(db, "users", currentUser.uid), { displayName: name, phone });
+    await updateProfile(currentUser, { displayName: name });
+    currentUserDoc.displayName = name;
+    document.getElementById("sb-name").textContent = name;
+    document.getElementById("sb-avatar").textContent = name[0].toUpperCase();
+    showBanner(alertEl, "Profile updated successfully.", "success");
+  } catch (e) {
+    showBanner(alertEl, "Failed to update profile.", "error");
+  }
+};
+
+// ── ROLE SWITCH ──
+window.switchRole = async function(newRole) {
+  const alertEl = document.getElementById("role-alert");
+  try {
+    await updateDoc(doc(db, "users", currentUser.uid), { role: newRole });
+    showToast("Role switched! Redirecting…", "success");
+    setTimeout(() => { window.location.href = newRole + ".html"; }, 1000);
+  } catch (e) {
+    showBanner(alertEl, "Failed to switch role. Try again.", "error");
+  }
+};
+
+// ── SIGN OUT ──
+window.handleSignOut = async function() {
+  await signOut(auth);
+  window.location.href = "auth.html";
+};
+
+// ── HELPERS ──
+function formatNaira(n) { return "₦" + fmtNum(n); }
+function fmtNum(n) { return (parseFloat(n) || 0).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function formatDate(ts) { if (!ts) return "—"; const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) + " " + d.toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" }); }
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function proofLabel(t) { return t === "image" ? "📸 Screenshot" : t === "text" ? "📝 Text" : "📸+📝 Both"; }
+function statusMsg(s) { return s === "pending" ? "⏳ Awaiting advertiser review" : s === "approved" ? "✅ Approved — payment will be credited" : "❌ Rejected by advertiser"; }
+
+window.openModal = function(id) { document.getElementById(id).classList.add("open"); }
+window.closeModal = function(id) { document.getElementById(id).classList.remove("open"); }
+window.toggleSidebar = function() { document.getElementById("sidebar").classList.toggle("open"); }
+function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); }
+
+function showBanner(el, msg, type) {
+  el.textContent = msg;
+  el.className = `alert-banner ${type} visible`;
+}
+
+window.showToast = function(msg, type = "info") {
+  const c = document.getElementById("toast-container");
+  const t = document.createElement("div");
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+};
+
+// Close modal on overlay click
+document.querySelectorAll(".modal-overlay").forEach(o => {
+  o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
+});
+</script>
+</body>
+</html>

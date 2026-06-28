@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CunkPay — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --midnight: #0B0F1A;
+    --navy: #111827;
+    --card: #161C2D;
+    --border: #1E2A42;
+    --cobalt: #2563EB;
+    --cobalt-light: #3B82F6;
+    --cobalt-dim: rgba(37,99,235,0.12);
+    --amber: #F59E0B;
+    --amber-dim: rgba(245,158,11,0.12);
+    --green: #10B981;
+    --green-dim: rgba(16,185,129,0.12);
+    --red: #EF4444;
+    --red-dim: rgba(239,68,68,0.12);
+    --slate: #94A3B8;
+    --muted: #64748B;
+    --white: #FFFFFF;
+    --off-white: #E2E8F0;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--midnight);
+    color: var(--white);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  /* ─── BACKGROUND GLOW ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── WRAPPER ─── */
+  .auth-wrapper {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 460px;
+  }
+
+  /* ─── LOGO ─── */
+  .auth-logo {
+    text-align: center; margin-bottom: 32px;
+  }
+  .auth-logo-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2rem; font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--white);
+  }
+  .auth-logo-text span { color: var(--cobalt-light); }
+  .auth-logo-sub {
+    font-size: 0.82rem; color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ─── CARD ─── */
+  .auth-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* ─── TABS ─── */
+  .auth-tabs {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .auth-tab {
+    padding: 16px;
+    text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem; font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+    border: none; background: none;
+    position: relative;
+  }
+  .auth-tab.active {
+    color: var(--white);
+    background: var(--midnight);
+  }
+  .auth-tab.active::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px; background: var(--cobalt);
+  }
+
+  /* ─── FORM BODY ─── */
+  .auth-body { padding: 28px; }
+
+  .form-panel { display: none; }
+  .form-panel.active { display: block; }
+
+  .form-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .form-sub {
+    font-size: 0.82rem; color: var(--muted);
+    margin-bottom: 24px; line-height: 1.6;
+  }
+
+  /* ─── FIELDS ─── */
+  .field-group { margin-bottom: 16px; }
+  .field-label {
+    display: block;
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--slate);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  .field-input {
+    width: 100%;
+    background: var(--midnight);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field-input::placeholder { color: var(--muted); }
+  .field-input:focus {
+    border-color: var(--cobalt);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  }
+  .field-input.error {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px var(--red-dim);
+  }
+  .field-error {
+    font-size: 0.75rem; color: var(--red);
+    margin-top: 5px; display: none;
+  }
+  .field-error.visible { display: block; }
+
+  /* ─── PHONE ROW ─── */
+  .phone-row {
+    display: grid; grid-template-columns: 90px 1fr; gap: 8px;
+  }
+
+  /* ─── ROLE SELECTOR ─── */
+  .role-selector {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .role-option { display: none; }
+  .role-label {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px; padding: 14px 12px;
+    background: var(--midnight);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: center;
+  }
+  .role-label:hover { border-color: var(--cobalt); }
+  .role-option:checked + .role-label {
+    border-color: var(--cobalt);
+    background: var(--cobalt-dim);
+  }
+  .role-icon { font-size: 1.4rem; }
+  .role-name-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.85rem; font-weight: 600; color: var(--white);
+  }
+  .role-desc-text { font-size: 0.72rem; color: var(--muted); line-height: 1.4; }
+
+  /* ─── PASSWORD WRAPPER ─── */
+  .pw-wrapper { position: relative; }
+  .pw-toggle {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 1rem; padding: 2px;
+    transition: color 0.2s;
+  }
+  .pw-toggle:hover { color: var(--white); }
+
+  /* ─── ALERT ─── */
+  .auth-alert {
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem; line-height: 1.5;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .auth-alert.visible { display: block; }
+  .auth-alert.error {
+    background: var(--red-dim);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #FCA5A5;
+  }
+  .auth-alert.success {
+    background: var(--green-dim);
+    border: 1px solid rgba(16,185,129,0.3);
+    color: #6EE7B7;
+  }
+
+  /* ─── SUBMIT BUTTON ─── */
+  .btn-submit {
+    width: 100%;
+    background: var(--cobalt);
+    color: var(--white);
+    border: none; border-radius: 8px;
+    padding: 13px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem; font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 4px;
+  }
+  .btn-submit:hover { background: var(--cobalt-light); }
+  .btn-submit:active { transform: scale(0.99); }
+  .btn-submit:disabled {
+    opacity: 0.6; cursor: not-allowed; transform: none;
+  }
+
+  /* ─── SPINNER ─── */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .btn-submit.loading .spinner { display: block; }
+  .btn-submit.loading .btn-text { opacity: 0.7; }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ─── DIVIDER ─── */
+  .form-divider {
+    text-align: center;
+    margin: 20px 0 4px;
+    font-size: 0.78rem; color: var(--muted);
+  }
+  .form-switch {
+    text-align: center; margin-top: 20px;
+    font-size: 0.82rem; color: var(--muted);
+  }
+  .form-switch a {
+    color: var(--cobalt-light); cursor: pointer;
+    text-decoration: none; font-weight: 600;
+  }
+  .form-switch a:hover { text-decoration: underline; }
+
+  /* ─── FOOTER NOTE ─── */
+  .auth-footer {
+    text-align: center; margin-top: 20px;
+    font-size: 0.75rem; color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 480px) {
+    .auth-body { padding: 20px; }
+    .phone-row { grid-template-columns: 80px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-wrapper">
+
+  <!-- LOGO -->
+  <div class="auth-logo">
+    <div class="auth-logo-text">Cunk<span>Pay</span></div>
+    <div class="auth-logo-sub">Micro-task marketplace</div>
+  </div>
+
+  <!-- CARD -->
+  <div class="auth-card">
+
+    <!-- TABS -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Create Account</button>
+    </div>
+
+    <div class="auth-body">
+
+      <!-- ── LOGIN PANEL ── -->
+      <div class="form-panel active" id="panel-login">
+        <div class="form-title">Welcome back</div>
+        <div class="form-sub">Sign in to your CunkPay account.</div>
+
+        <div class="auth-alert error" id="login-alert"></div>
+
+        <div class="field-group">
+          <label class="field-label" for="login-email">Email Address</label>
+          <input class="field-input" type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+          <div class="field-error" id="login-email-err">Please enter a valid email address.</div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="login-password">Password</label>
+          <div class="pw-wrapper">
+            <input class="field-input" type="password" id="login-password" placeholder="Your password" autocomplete="current-password">
+            <button class="pw-toggle" type="button" onclick="togglePw('login-password', this)" aria-label="Toggle password visibility">👁</button>
+          </div>
+          <div class="field-error" id="login-pw-err">Please enter your password.</div>
+        </div>
+
+        <button class="btn-submit" id="btn-login" onclick="handleLogin()">
+          <div class="spinner"></div>
+          <span class="btn-text">Sign In</span>
+        </button>
+
+        <div class="form-switch">
+          Don't have an account? <a onclick="switchTab('register')">Create one</a>
+        </div>
+      </div>
+
+      <!-- ── REGISTER PANEL ── -->
+      <div class="form-panel" id="panel-register">
+        <div class="form-title">Create your account</div>
+        <div class="form-sub">Join CunkPay as a Worker or Advertiser. You can switch roles later.</div>
+
+        <div class="auth-alert error" id="register-alert"></div>
+        <div class="auth-alert success" id="register-success"></div>
+
+        <!-- ROLE SELECTOR -->
+        <div style="margin-bottom:6px;">
+          <span class="field-label" style="display:block;margin-bottom:10px;">I want to join as</span>
+          <div class="role-selector">
+            <div>
+              <input class="role-option" type="radio" name="role" id="role-worker" value="worker" checked>
+              <label class="role-label" for="role-worker">
+                <span class="role-icon">👷</span>
+                <span class="role-name-text">Worker</span>
+                <span class="role-desc-text">Complete tasks and earn money</span>
+              </label>
+            </div>
+            <div>
+              <input class="role-option" type="radio" name="role" id="role-advertiser" value="advertiser">
+              <label class="role-label" for="role-advertiser">
+                <span class="role-icon">📢</span>
+                <span class="role-name-text">Advertiser</span>
+                <span class="role-desc-text">Post tasks and get results</span>
+              </label>
+            </div>
+          </div>
+          <div class="field-error" id="register-role-err" style="margin-top:-6px;margin-bottom:8px;">Please select a role.</div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="reg-name">Full Name</label>
+          <input class="field-input" type="text" id="reg-name" placeholder="Your full name" autocomplete="name">
+          <div class="field-error" id="reg-name-err">Please enter your full name.</div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="reg-email">Email Address</label>
+          <input class="field-input" type="email" id="reg-email" placeholder="you@example.com" autocomplete="email">
+          <div class="field-error" id="reg-email-err">Please enter a valid email address.</div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="reg-phone">Phone Number</label>
+          <div class="phone-row">
+            <input class="field-input" type="text" id="reg-phone-code" placeholder="+234" maxlength="5">
+            <input class="field-input" type="tel" id="reg-phone" placeholder="8012345678" autocomplete="tel">
+          </div>
+          <div class="field-error" id="reg-phone-err">Please enter a valid phone number with country code.</div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="reg-password">Password</label>
+          <div class="pw-wrapper">
+            <input class="field-input" type="password" id="reg-password" placeholder="Minimum 8 characters" autocomplete="new-password">
+            <button class="pw-toggle" type="button" onclick="togglePw('reg-password', this)" aria-label="Toggle password visibility">👁</button>
+          </div>
+          <div class="field-error" id="reg-pw-err">Password must be at least 8 characters.</div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="reg-confirm">Confirm Password</label>
+          <div class="pw-wrapper">
+            <input class="field-input" type="password" id="reg-confirm" placeholder="Repeat your password" autocomplete="new-password">
+            <button class="pw-toggle" type="button" onclick="togglePw('reg-confirm', this)" aria-label="Toggle password visibility">👁</button>
+          </div>
+          <div class="field-error" id="reg-confirm-err">Passwords do not match.</div>
+        </div>
+
+        <button class="btn-submit" id="btn-register" onclick="handleRegister()">
+          <div class="spinner"></div>
+          <span class="btn-text">Create Account</span>
+        </button>
+
+        <div class="form-switch">
+          Already have an account? <a onclick="switchTab('login')">Sign in</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="auth-footer">
+    By continuing, you agree to CunkPay's Terms of Service and Privacy Policy.
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════
+     FIREBASE SDK
+════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    updateProfile,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ── FIREBASE INIT ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyDAbScL9p3caIH9zpW3m9f8D3cWLetfOrs",
+    authDomain: "cunkpay.firebaseapp.com",
+    projectId: "cunkpay",
+    storageBucket: "cunkpay.firebasestorage.app",
+    messagingSenderId: "789585022129",
+    appId: "1:789585022129:web:935f8bef2232a43503e690"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // ── HEAL USER DOC ──
+  // Runs on every login. Ensures all required fields exist on the user document.
+  // Adds any missing fields without overwriting existing ones.
+  async function healUserDoc(uid) {
+    const ref = doc(db, "users", uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+    const updates = {};
+
+    if (data.walletAvailable === undefined) updates.walletAvailable = 0;
+    if (data.walletReserved === undefined) updates.walletReserved = 0;
+    if (data.totalEarned === undefined) updates.totalEarned = 0;
+    if (data.totalDeposited === undefined) updates.totalDeposited = 0;
+    if (data.status === undefined) updates.status = "active";
+    if (data.role === undefined) updates.role = "worker";
+    if (data.phone === undefined) updates.phone = "";
+
+    if (Object.keys(updates).length > 0) {
+      await updateDoc(ref, updates);
+    }
+  }
+
+  // ── AUTH STATE OBSERVER ──
+  // Redirects authenticated users away from auth page to their dashboard.
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        await healUserDoc(user.uid);
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.status === "suspended") {
+            await signOut(auth);
+            return;
+          }
+          routeByRole(data.role);
+        }
+      } catch (e) {
+        console.error("Auth state redirect error:", e);
+      }
+    }
+  });
+
+  // ── ROLE ROUTER ──
+  function routeByRole(role) {
+    if (role === "admin") {
+      window.location.href = "admin.html";
+    } else if (role === "advertiser") {
+      window.location.href = "advertiser.html";
+    } else {
+      window.location.href = "worker.html";
+    }
+  }
+
+  // ── REGISTER ──
+  window.handleRegister = async function () {
+    clearErrors();
+
+    const name = document.getElementById("reg-name").value.trim();
+    const email = document.getElementById("reg-email").value.trim();
+    const phoneCode = document.getElementById("reg-phone-code").value.trim();
+    const phoneNumber = document.getElementById("reg-phone").value.trim();
+    const password = document.getElementById("reg-password").value;
+    const confirm = document.getElementById("reg-confirm").value;
+    const role = document.querySelector('input[name="role"]:checked')?.value;
+
+    // Validation
+    let hasError = false;
+
+    if (!name) { showFieldError("reg-name-err"); showInput("reg-name", true); hasError = true; }
+    if (!email || !email.includes("@")) { showFieldError("reg-email-err"); showInput("reg-email", true); hasError = true; }
+    if (!phoneCode || !phoneNumber || phoneNumber.length < 7) {
+      showFieldError("reg-phone-err");
+      showInput("reg-phone-code", true);
+      showInput("reg-phone", true);
+      hasError = true;
+    }
+    if (!password || password.length < 8) { showFieldError("reg-pw-err"); showInput("reg-password", true); hasError = true; }
+    if (password !== confirm) { showFieldError("reg-confirm-err"); showInput("reg-confirm", true); hasError = true; }
+    if (!role) { showFieldError("register-role-err"); hasError = true; }
+
+    if (hasError) return;
+
+    const phone = `${phoneCode}${phoneNumber}`;
+    const btn = document.getElementById("btn-register");
+    setLoading(btn, true);
+
+    try {
+      // Create Firebase Auth user
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = cred.user.uid;
+
+      // Update display name in Auth
+      await updateProfile(cred.user, { displayName: name });
+
+      // Create Firestore user document
+      await setDoc(doc(db, "users", uid), {
+        uid,
+        displayName: name,
+        email,
+        phone,
+        role,
+        walletAvailable: 0,
+        walletReserved: 0,
+        totalEarned: 0,
+        totalDeposited: 0,
+        status: "active",
+        createdAt: serverTimestamp()
+      });
+
+      // Show success briefly then redirect
+      showAlert("register-success", "Account created! Redirecting you now…", "success");
+
+      setTimeout(() => {
+        routeByRole(role);
+      }, 1200);
+
+    } catch (err) {
+      setLoading(btn, false);
+      showAlert("register-alert", friendlyError(err.code), "error");
+    }
+  };
+
+  // ── LOGIN ──
+  window.handleLogin = async function () {
+    clearErrors();
+
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+
+    let hasError = false;
+    if (!email || !email.includes("@")) { showFieldError("login-email-err"); showInput("login-email", true); hasError = true; }
+    if (!password) { showFieldError("login-pw-err"); showInput("login-password", true); hasError = true; }
+    if (hasError) return;
+
+    const btn = document.getElementById("btn-login");
+    setLoading(btn, true);
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      await healUserDoc(cred.user.uid);
+
+      const snap = await getDoc(doc(db, "users", cred.user.uid));
+      if (!snap.exists()) throw { code: "user-doc-missing" };
+
+      const userData = snap.data();
+      if (userData.status === "suspended") {
+        await signOut(auth);
+        throw { code: "account-suspended" };
+      }
+
+      routeByRole(userData.role);
+
+    } catch (err) {
+      setLoading(btn, false);
+      showAlert("login-alert", friendlyError(err.code), "error");
+    }
+  };
+
+  // ── FRIENDLY ERROR MESSAGES ──
+  function friendlyError(code) {
+    const map = {
+      "auth/email-already-in-use": "This email is already registered. Try signing in instead.",
+      "auth/invalid-email": "That email address doesn't look right.",
+      "auth/weak-password": "Password is too weak. Use at least 8 characters.",
+      "auth/user-not-found": "No account found with this email.",
+      "auth/wrong-password": "Incorrect password. Please try again.",
+      "auth/invalid-credential": "Incorrect email or password. Please try again.",
+      "auth/too-many-requests": "Too many failed attempts. Please wait a moment and try again.",
+      "auth/network-request-failed": "Network error. Check your connection and try again.",
+      "user-doc-missing": "Account data not found. Please contact support.",
+      "account-suspended": "Your account has been suspended. Please contact support for help.",
+    };
+    return map[code] || "Something went wrong. Please try again.";
+  }
+
+  // ── UI HELPERS ──
+  function setLoading(btn, state) {
+    btn.disabled = state;
+    btn.classList.toggle("loading", state);
+  }
+
+  function showFieldError(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add("visible");
+  }
+
+  function showInput(id, isError) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle("error", isError);
+  }
+
+  function showAlert(id, msg, type) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.className = `auth-alert ${type} visible`;
+  }
+
+  function clearErrors() {
+    document.querySelectorAll(".field-error").forEach(e => e.classList.remove("visible"));
+    document.querySelectorAll(".field-input").forEach(e => e.classList.remove("error"));
+    document.querySelectorAll(".auth-alert").forEach(e => {
+      e.classList.remove("visible", "error", "success");
+      e.textContent = "";
+    });
+  }
+
+  // ── EXPOSE HELPERS TO GLOBAL SCOPE ──
+  window.togglePw = function(id, btn) {
+    const input = document.getElementById(id);
+    if (input.type === "password") {
+      input.type = "text";
+      btn.textContent = "🙈";
+    } else {
+      input.type = "password";
+      btn.textContent = "👁";
+    }
+  };
+
+  window.switchTab = function(tab) {
+    clearErrors();
+    document.getElementById("panel-login").classList.toggle("active", tab === "login");
+    document.getElementById("panel-register").classList.toggle("active", tab === "register");
+    document.getElementById("tab-login").classList.toggle("active", tab === "login");
+    document.getElementById("tab-register").classList.toggle("active", tab === "register");
+  };
+
+</script>
+</body>
+</html>
