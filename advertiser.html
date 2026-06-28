@@ -582,7 +582,7 @@ window.createTask = async function() {
 
   if (!title) { showBanner(alertEl, "Please enter a task title.", "error"); return; }
   if (!desc) { showBanner(alertEl, "Please enter a task description.", "error"); return; }
-  if (!reward || reward < 50) { showBanner(alertEl, "Minimum reward is ₦50 per slot.", "error"); return; }
+  if (!reward || reward < 10) { showBanner(alertEl, "Minimum reward is ₦10 per slot.", "error"); return; }
   if (!slots || slots < 1) { showBanner(alertEl, "Please enter at least 1 slot.", "error"); return; }
 
   const totalCost = reward * slots;
