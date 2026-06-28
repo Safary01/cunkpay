@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CunkPay — Get Paid for Mini Tasks</title>
+<meta name="description" content="CunkPay connects people who have free time with businesses that need real human engagement. Complete mini tasks and get paid, or grow your brand with genuine interactions.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --midnight: #0B0F1A;
+  --navy: #111827;
+  --card: #161C2D;
+  --border: #1E2A42;
+  --cobalt: #2563EB;
+  --cobalt-light: #3B82F6;
+  --cobalt-dim: rgba(37,99,235,0.12);
+  --amber: #F59E0B;
+  --amber-dim: rgba(245,158,11,0.12);
+  --green: #10B981;
+  --green-dim: rgba(16,185,129,0.12);
+  --slate: #94A3B8;
+  --muted: #64748B;
+  --white: #FFFFFF;
+  --off-white: #E2E8F0;
+}
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; background: var(--midnight); color: var(--white); line-height: 1.6; overflow-x: hidden; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 64px;
+  background: rgba(11,15,26,0.9); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo { font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; color: var(--white); text-decoration: none; }
+.nav-logo span { color: var(--cobalt-light); }
+.nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+.nav-links a { color: var(--slate); font-size: 0.875rem; text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--white); }
+.nav-cta { display: flex; gap: 10px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; border-radius: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: all 0.15s; }
+.btn-outline { background: transparent; color: var(--white); border: 1px solid var(--border); }
+.btn-outline:hover { border-color: var(--cobalt); color: var(--cobalt-light); }
+.btn-primary { background: var(--cobalt); color: white; }
+.btn-primary:hover { background: var(--cobalt-light); }
+.btn-lg { padding: 14px 28px; font-size: 0.95rem; }
+.btn-xl { padding: 16px 36px; font-size: 1rem; border-radius: 10px; }
+.hamburger { display: none; background: none; border: none; color: var(--slate); font-size: 1.3rem; cursor: pointer; }
+.mobile-menu { display: none; position: fixed; top: 64px; left: 0; right: 0; background: var(--navy); border-bottom: 1px solid var(--border); padding: 20px; z-index: 99; flex-direction: column; gap: 16px; }
+.mobile-menu.open { display: flex; }
+.mobile-menu a { color: var(--slate); text-decoration: none; font-size: 0.95rem; padding: 8px 0; border-bottom: 1px solid var(--border); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh; padding: 120px 40px 80px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+  width: 800px; height: 800px;
+  background: radial-gradient(circle, rgba(37,99,235,0.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.3);
+  color: var(--amber); font-size: 0.78rem; font-weight: 600;
+  padding: 6px 14px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--amber); animation: pulse 1.5s infinite; }
+.hero-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.8rem, 6vw, 5rem); font-weight: 700;
+  line-height: 1.08; letter-spacing: -0.035em;
+  max-width: 800px; margin-bottom: 24px;
+}
+.hero-title .blue { color: var(--cobalt-light); }
+.hero-title .gold { color: var(--amber); }
+.hero-desc { font-size: clamp(1rem, 1.5vw, 1.15rem); color: var(--slate); max-width: 540px; line-height: 1.75; margin-bottom: 40px; }
+.hero-cta { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-bottom: 60px; }
+.hero-proof {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: center;
+  padding: 16px 28px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 50px;
+}
+.proof-stat { display: flex; flex-direction: column; align-items: center; }
+.proof-num { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--white); }
+.proof-label { font-size: 0.72rem; color: var(--muted); }
+.proof-divider { width: 1px; height: 32px; background: var(--border); }
+
+/* ── TICKER ── */
+.ticker-wrap { width: 100%; overflow: hidden; padding: 20px 0; margin: 20px 0; background: var(--navy); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.ticker-inner { display: flex; gap: 0; animation: tickerMove 22s linear infinite; white-space: nowrap; }
+.ticker-inner:hover { animation-play-state: paused; }
+.ticker-item { display: inline-flex; align-items: center; gap: 8px; padding: 0 28px; font-size: 0.82rem; color: var(--slate); border-right: 1px solid var(--border); }
+.ticker-item .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dot-green { background: var(--green); }
+.dot-amber { background: var(--amber); }
+.dot-cobalt { background: var(--cobalt-light); }
+.ticker-amt { font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+.t-green { color: var(--green); }
+.t-amber { color: var(--amber); }
+.t-cobalt { color: var(--cobalt-light); }
+@keyframes tickerMove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── SECTIONS ── */
+.section { padding: 90px 40px; max-width: 1160px; margin: 0 auto; }
+.section-center { text-align: center; }
+.section-eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cobalt-light); margin-bottom: 12px; }
+.section-title { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.12; margin-bottom: 16px; }
+.section-sub { color: var(--slate); font-size: 1rem; max-width: 520px; margin: 0 auto 52px; line-height: 1.75; }
+.full-divider { width: 100vw; margin-left: calc(-50vw + 50%); height: 1px; background: var(--border); }
+
+/* ── HOW IT WORKS ── */
+.how-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+.how-role { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.how-role-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.how-role-icon { font-size: 1.3rem; }
+.how-role-title { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; }
+.how-role-badge { margin-left: auto; font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; letter-spacing: 0.04em; }
+.badge-worker { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.badge-advertiser { background: var(--cobalt-dim); color: var(--cobalt-light); border: 1px solid rgba(37,99,235,0.2); }
+.how-steps { padding: 8px 0; }
+.how-step { display: flex; gap: 14px; padding: 14px 24px; border-bottom: 1px solid rgba(30,42,66,0.5); }
+.how-step:last-child { border-bottom: none; }
+.step-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.num-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.num-cobalt { background: var(--cobalt-dim); color: var(--cobalt-light); border: 1px solid rgba(37,99,235,0.3); }
+.step-title { font-size: 0.88rem; font-weight: 600; margin-bottom: 3px; }
+.step-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+
+/* ── FEATURES ── */
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.feature-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 26px; position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
+.feature-card:hover { border-color: var(--cobalt); transform: translateY(-2px); }
+.feature-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.fc-blue::after { background: var(--cobalt); }
+.fc-green::after { background: var(--green); }
+.fc-amber::after { background: var(--amber); }
+.feature-icon { font-size: 1.6rem; margin-bottom: 14px; display: block; }
+.feature-title { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+.feature-desc { font-size: 0.82rem; color: var(--slate); line-height: 1.65; }
+
+/* ── PROOF TYPES ── */
+.proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.proof-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; text-align: center; }
+.proof-card-icon { font-size: 2rem; margin-bottom: 12px; }
+.proof-card-title { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+.proof-card-desc { font-size: 0.82rem; color: var(--slate); line-height: 1.6; }
+
+/* ── TASKS EXAMPLES ── */
+.tasks-showcase { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.task-ex { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+.task-ex-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.task-ex-title { font-size: 0.88rem; font-weight: 600; line-height: 1.4; flex: 1; margin-right: 8px; }
+.task-ex-reward { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--amber); white-space: nowrap; }
+.task-ex-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+.task-meta-pill { font-size: 0.68rem; color: var(--muted); background: rgba(30,42,66,0.6); padding: 3px 8px; border-radius: 20px; }
+
+/* ── WALLET PREVIEW ── */
+.wallet-preview { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; max-width: 420px; margin: 0 auto; }
+.wp-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.wp-title { font-family: 'Space Grotesk', sans-serif; font-size: 0.88rem; font-weight: 700; }
+.wp-live { font-size: 0.72rem; color: var(--green); display: flex; align-items: center; gap: 5px; }
+.wp-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 1.2s infinite; }
+.wp-balance { padding: 20px; text-align: center; border-bottom: 1px solid var(--border); }
+.wp-bal-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.wp-bal-amount { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; color: var(--green); letter-spacing: -0.03em; }
+.wp-transactions { padding: 12px 0; }
+.wp-txn { display: flex; justify-content: space-between; align-items: center; padding: 9px 20px; }
+.wp-txn-desc { font-size: 0.78rem; color: var(--off-white); }
+.wp-txn-date { font-size: 0.68rem; color: var(--muted); }
+.wp-txn-amt { font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 700; }
+
+/* ── CTA SECTION ── */
+.cta-section { text-align: center; padding: 90px 40px; position: relative; overflow: hidden; }
+.cta-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(37,99,235,0.08) 0%, transparent 70%); pointer-events: none; }
+.cta-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 60px 40px; max-width: 700px; margin: 0 auto; position: relative; }
+.cta-title { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 700; letter-spacing: -0.025em; margin-bottom: 16px; }
+.cta-desc { color: var(--slate); font-size: 1rem; line-height: 1.7; margin-bottom: 36px; max-width: 480px; margin-left: auto; margin-right: auto; }
+.cta-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.cta-note { font-size: 0.78rem; color: var(--muted); margin-top: 16px; }
+
+/* ── FOOTER ── */
+footer { background: var(--navy); border-top: 1px solid var(--border); padding: 48px 40px 28px; }
+.footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+.footer-brand-logo { font-family: 'Space Grotesk', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; color: var(--white); }
+.footer-brand-logo span { color: var(--cobalt-light); }
+.footer-brand-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.7; max-width: 260px; }
+.footer-col-title { font-family: 'Space Grotesk', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.footer-links a { font-size: 0.82rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--white); }
+.footer-bottom { border-top: 1px solid var(--border); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.footer-copy { font-size: 0.78rem; color: var(--muted); }
+.footer-legal { display: flex; gap: 20px; }
+.footer-legal a { font-size: 0.78rem; color: var(--muted); text-decoration: none; }
+.footer-legal a:hover { color: var(--white); }
+.powered-by { font-size: 0.72rem; color: var(--muted); }
+.powered-by span { color: var(--cobalt-light); }
+
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  nav { padding: 0 20px; }
+  .nav-links, .nav-cta { display: none; }
+  .hamburger { display: block; }
+  .hero { padding: 100px 20px 60px; }
+  .section { padding: 60px 20px; }
+  .how-grid { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .proof-grid { grid-template-columns: 1fr; }
+  .tasks-showcase { grid-template-columns: 1fr 1fr; }
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .cta-section { padding: 60px 20px; }
+}
+@media (max-width: 560px) {
+  .features-grid, .tasks-showcase { grid-template-columns: 1fr; }
+  .footer-top { grid-template-columns: 1fr; }
+  .hero-proof { flex-direction: column; gap: 12px; border-radius: 16px; }
+  .proof-divider { width: 60px; height: 1px; }
+  .footer-bottom { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">Cunk<span>Pay</span></a>
+  <ul class="nav-links">
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#tasks">Tasks</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="auth.html" class="btn btn-outline">Sign In</a>
+    <a href="auth.html" class="btn btn-primary">Get Started</a>
+  </div>
+  <button class="hamburger" onclick="document.querySelector('.mobile-menu').classList.toggle('open')">☰</button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu">
+  <a href="#how-it-works" onclick="document.querySelector('.mobile-menu').classList.remove('open')">How It Works</a>
+  <a href="#features" onclick="document.querySelector('.mobile-menu').classList.remove('open')">Features</a>
+  <a href="#tasks" onclick="document.querySelector('.mobile-menu').classList.remove('open')">Tasks</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+  <a href="auth.html" class="btn btn-primary" style="text-align:center">Get Started →</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Now Live — Join Free</div>
+  <h1 class="hero-title">
+    Your free time<br>
+    <span class="blue">is worth money.</span><br>
+    <span class="gold">Start earning today.</span>
+  </h1>
+  <p class="hero-desc">
+    CunkPay connects people with free time to businesses that need real human engagement. Complete mini tasks, submit proof, and get paid — or post tasks and grow your brand with genuine interactions.
+  </p>
+  <div class="hero-cta">
+    <a href="auth.html" class="btn btn-primary btn-xl">Start Earning →</a>
+    <a href="auth.html" class="btn btn-outline btn-xl">Post Tasks</a>
+  </div>
+  <div class="hero-proof">
+    <div class="proof-stat"><div class="proof-num">3</div><div class="proof-label">User Roles</div></div>
+    <div class="proof-divider"></div>
+    <div class="proof-stat"><div class="proof-num">Free</div><div class="proof-label">To Join</div></div>
+    <div class="proof-divider"></div>
+    <div class="proof-stat"><div class="proof-num">10%</div><div class="proof-label">Platform Fee</div></div>
+    <div class="proof-divider"></div>
+    <div class="proof-stat"><div class="proof-num">100%</div><div class="proof-label">Real Humans</div></div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner">
+    <div class="ticker-item"><span class="dot dot-green"></span>Worker Emeka earned <span class="ticker-amt t-green">+₦1,200</span> · Follow on Twitter</div>
+    <div class="ticker-item"><span class="dot dot-cobalt"></span>New task posted · Subscribe to YouTube channel · <span class="ticker-amt t-amber">₦800/slot</span></div>
+    <div class="ticker-item"><span class="dot dot-green"></span>Worker Ada received <span class="ticker-amt t-green">+₦2,500</span> · App review submitted</div>
+    <div class="ticker-item"><span class="dot dot-amber"></span>Advertiser funded campaign · <span class="ticker-amt t-cobalt">₦50,000</span> deposited</div>
+    <div class="ticker-item"><span class="dot dot-green"></span>Worker Fatima earned <span class="ticker-amt t-green">+₦600</span> · Google Maps review</div>
+    <div class="ticker-item"><span class="dot dot-cobalt"></span>20 slots filled · Instagram follow campaign · <span class="ticker-amt t-amber">₦500/slot</span></div>
+    <div class="ticker-item"><span class="dot dot-green"></span>Worker Chidi payout approved · <span class="ticker-amt t-green">+₦18,000</span></div>
+    <div class="ticker-item"><span class="dot dot-amber"></span>Website traffic task · 50 slots · <span class="ticker-amt t-amber">₦300/slot</span></div>
+    <!-- duplicate for seamless loop -->
+    <div class="ticker-item"><span class="dot dot-green"></span>Worker Emeka earned <span class="ticker-amt t-green">+₦1,200</span> · Follow on Twitter</div>
+    <div class="ticker-item"><span class="dot dot-cobalt"></span>New task posted · Subscribe to YouTube channel · <span class="ticker-amt t-amber">₦800/slot</span></div>
+    <div class="ticker-item"><span class="dot dot-green"></span>Worker Ada received <span class="ticker-amt t-green">+₦2,500</span> · App review submitted</div>
+    <div class="ticker-item"><span class="dot dot-amber"></span>Advertiser funded campaign · <span class="ticker-amt t-cobalt">₦50,000</span> deposited</div>
+    <div class="ticker-item"><span class="dot dot-green"></span>Worker Fatima earned <span class="ticker-amt t-green">+₦600</span> · Google Maps review</div>
+    <div class="ticker-item"><span class="dot dot-cobalt"></span>20 slots filled · Instagram follow campaign · <span class="ticker-amt t-amber">₦500/slot</span></div>
+    <div class="ticker-item"><span class="dot dot-green"></span>Worker Chidi payout approved · <span class="ticker-amt t-green">+₦18,000</span></div>
+    <div class="ticker-item"><span class="dot dot-amber"></span>Website traffic task · 50 slots · <span class="ticker-amt t-amber">₦300/slot</span></div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="full-divider"></div>
+<div class="section" id="how-it-works">
+  <div class="section-center" style="margin-bottom:52px">
+    <div class="section-eyebrow">How It Works</div>
+    <h2 class="section-title">Two sides.<br>One marketplace.</h2>
+    <p class="section-sub">Whether you're earning or growing, the process is simple, transparent, and built on proof.</p>
+  </div>
+  <div class="how-grid">
+    <!-- WORKER -->
+    <div class="how-role">
+      <div class="how-role-header">
+        <span class="how-role-icon">👷</span>
+        <span class="how-role-title">For Workers</span>
+        <span class="how-role-badge badge-worker">Earn Money</span>
+      </div>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="step-num num-green">1</div>
+          <div><div class="step-title">Sign up for free</div><div class="step-desc">Create your Worker account in under a minute. No fees, no upfront cost.</div></div>
+        </div>
+        <div class="how-step">
+          <div class="step-num num-green">2</div>
+          <div><div class="step-title">Browse available tasks</div><div class="step-desc">Pick tasks that suit you — social media, reviews, app downloads, and more.</div></div>
+        </div>
+        <div class="how-step">
+          <div class="step-num num-green">3</div>
+          <div><div class="step-title">Complete and submit proof</div><div class="step-desc">Do the task, upload your screenshot or paste your proof text.</div></div>
+        </div>
+        <div class="how-step">
+          <div class="step-num num-green">4</div>
+          <div><div class="step-title">Get paid to your wallet</div><div class="step-desc">Advertiser reviews your proof and credits your wallet. Withdraw anytime.</div></div>
+        </div>
+      </div>
+    </div>
+    <!-- ADVERTISER -->
+    <div class="how-role">
+      <div class="how-role-header">
+        <span class="how-role-icon">📢</span>
+        <span class="how-role-title">For Advertisers</span>
+        <span class="how-role-badge badge-advertiser">Grow Your Brand</span>
+      </div>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="step-num num-cobalt">1</div>
+          <div><div class="step-title">Create your account</div><div class="step-desc">Sign up and choose the Advertiser role, or switch to it anytime.</div></div>
+        </div>
+        <div class="how-step">
+          <div class="step-num num-cobalt">2</div>
+          <div><div class="step-title">Deposit funds</div><div class="step-desc">Transfer to our account and submit proof. Admin credits your wallet.</div></div>
+        </div>
+        <div class="how-step">
+          <div class="step-num num-cobalt">3</div>
+          <div><div class="step-title">Post your task</div><div class="step-desc">Set reward per slot, number of slots, description, and proof type required.</div></div>
+        </div>
+        <div class="how-step">
+          <div class="step-num num-cobalt">4</div>
+          <div><div class="step-title">Review and approve proofs</div><div class="step-desc">Workers submit proof, you review it. Approve to pay them, reject if invalid.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="full-divider"></div>
+<div class="section" id="features">
+  <div class="section-center" style="margin-bottom:52px">
+    <div class="section-eyebrow">Platform Features</div>
+    <h2 class="section-title">Built for trust.<br>Designed for scale.</h2>
+    <p class="section-sub">Every feature exists to protect both sides — workers get paid fairly, advertisers get real results.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card fc-green">
+      <span class="feature-icon">💰</span>
+      <div class="feature-title">Wallet System</div>
+      <p class="feature-desc">Every naira is tracked in real time. Available, reserved, and pending balances always shown clearly. Full transaction ledger included.</p>
+    </div>
+    <div class="feature-card fc-blue">
+      <span class="feature-icon">📸</span>
+      <div class="feature-title">Proof-Based Payments</div>
+      <p class="feature-desc">Workers submit screenshots, text, or both as proof. Advertisers verify before any payment is released. No proof, no pay.</p>
+    </div>
+    <div class="feature-card fc-amber">
+      <span class="feature-icon">🔒</span>
+      <div class="feature-title">One Submission Per Task</div>
+      <p class="feature-desc">Each worker can only submit once per task. No duplicate submissions, no gaming the system.</p>
+    </div>
+    <div class="feature-card fc-blue">
+      <span class="feature-icon">🔄</span>
+      <div class="feature-title">Flexible Roles</div>
+      <p class="feature-desc">Start as a Worker and switch to Advertiser anytime — or vice versa. Your wallet balance carries over. One account, both worlds.</p>
+    </div>
+    <div class="feature-card fc-green">
+      <span class="feature-icon">📒</span>
+      <div class="feature-title">Immutable Ledger</div>
+      <p class="feature-desc">Every transaction is permanently recorded. No record can be altered or deleted. Complete financial transparency for every account.</p>
+    </div>
+    <div class="feature-card fc-amber">
+      <span class="feature-icon">🛡️</span>
+      <div class="feature-title">Admin Oversight</div>
+      <p class="feature-desc">All deposits and withdrawals go through admin approval. Disputes are handled manually. Platform integrity protected at every step.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TASK EXAMPLES -->
+<div class="full-divider"></div>
+<div class="section" id="tasks">
+  <div class="section-center" style="margin-bottom:52px">
+    <div class="section-eyebrow">Example Tasks</div>
+    <h2 class="section-title">Real tasks.<br>Real rewards.</h2>
+    <p class="section-sub">Here's the kind of work available on CunkPay. Tasks are posted by real advertisers every day.</p>
+  </div>
+  <div class="tasks-showcase">
+    <div class="task-ex">
+      <div class="task-ex-top">
+        <div class="task-ex-title">Follow our Twitter account and retweet the pinned post</div>
+        <div class="task-ex-reward">₦500</div>
+      </div>
+      <div class="task-ex-meta">
+        <span class="task-meta-pill">📸 Screenshot</span>
+        <span class="task-meta-pill">18/20 slots</span>
+      </div>
+    </div>
+    <div class="task-ex">
+      <div class="task-ex-top">
+        <div class="task-ex-title">Subscribe to our YouTube channel and leave a comment</div>
+        <div class="task-ex-reward">₦800</div>
+      </div>
+      <div class="task-ex-meta">
+        <span class="task-meta-pill">📸+📝 Both</span>
+        <span class="task-meta-pill">5/30 slots</span>
+      </div>
+    </div>
+    <div class="task-ex">
+      <div class="task-ex-top">
+        <div class="task-ex-title">Leave a 5-star Google Maps review for our restaurant</div>
+        <div class="task-ex-reward">₦1,200</div>
+      </div>
+      <div class="task-ex-meta">
+        <span class="task-meta-pill">📸 Screenshot</span>
+        <span class="task-meta-pill">12/15 slots</span>
+      </div>
+    </div>
+    <div class="task-ex">
+      <div class="task-ex-top">
+        <div class="task-ex-title">Download our mobile app and rate it on the Play Store</div>
+        <div class="task-ex-reward">₦1,500</div>
+      </div>
+      <div class="task-ex-meta">
+        <span class="task-meta-pill">📝 Text</span>
+        <span class="task-meta-pill">0/50 slots</span>
+      </div>
+    </div>
+    <div class="task-ex">
+      <div class="task-ex-top">
+        <div class="task-ex-title">Visit our website and spend at least 3 minutes browsing</div>
+        <div class="task-ex-reward">₦300</div>
+      </div>
+      <div class="task-ex-meta">
+        <span class="task-meta-pill">📸 Screenshot</span>
+        <span class="task-meta-pill">40/100 slots</span>
+      </div>
+    </div>
+    <div class="task-ex">
+      <div class="task-ex-top">
+        <div class="task-ex-title">Follow our Instagram page and like our last 3 posts</div>
+        <div class="task-ex-reward">₦600</div>
+      </div>
+      <div class="task-ex-meta">
+        <span class="task-meta-pill">📸 Screenshot</span>
+        <span class="task-meta-pill">7/25 slots</span>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:36px">
+    <a href="auth.html" class="btn btn-primary btn-lg">Browse Live Tasks →</a>
+  </div>
+</div>
+
+<!-- WALLET PREVIEW -->
+<div class="full-divider"></div>
+<div class="section" style="text-align:center">
+  <div class="section-eyebrow">Your Earnings</div>
+  <h2 class="section-title">Watch your wallet grow.</h2>
+  <p class="section-sub" style="margin-bottom:40px">Every approved task credits your wallet instantly. Withdraw to your bank account whenever you're ready.</p>
+  <div class="wallet-preview">
+    <div class="wp-header">
+      <div class="wp-title">Worker Wallet</div>
+      <div class="wp-live">Live Balance</div>
+    </div>
+    <div class="wp-balance">
+      <div class="wp-bal-label">Available to Withdraw</div>
+      <div class="wp-bal-amount">₦24,600.00</div>
+    </div>
+    <div class="wp-transactions">
+      <div class="wp-txn">
+        <div><div class="wp-txn-desc">Follow @BrandXNg on Twitter</div><div class="wp-txn-date">Today · 09:14 AM</div></div>
+        <div class="wp-txn-amt" style="color:var(--green)">+₦500</div>
+      </div>
+      <div class="wp-txn">
+        <div><div class="wp-txn-desc">YouTube subscribe + comment</div><div class="wp-txn-date">Yesterday · 02:31 PM</div></div>
+        <div class="wp-txn-amt" style="color:var(--green)">+₦800</div>
+      </div>
+      <div class="wp-txn">
+        <div><div class="wp-txn-desc">Google Maps 5-star review</div><div class="wp-txn-date">Yesterday · 11:06 AM</div></div>
+        <div class="wp-txn-amt" style="color:var(--green)">+₦1,200</div>
+      </div>
+      <div class="wp-txn">
+        <div><div class="wp-txn-desc">Withdrawal — GTB ••••4821</div><div class="wp-txn-date">3 days ago</div></div>
+        <div class="wp-txn-amt" style="color:var(--red)">-₦10,800</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="full-divider"></div>
+<div class="cta-section">
+  <div class="cta-card">
+    <h2 class="cta-title">Ready to turn your<br>free time into income?</h2>
+    <p class="cta-desc">Join CunkPay today. It's free to sign up. Start browsing tasks in minutes and earn real money doing things you already do online.</p>
+    <div class="cta-buttons">
+      <a href="auth.html" class="btn btn-primary btn-xl">Create Free Account →</a>
+      <a href="about.html" class="btn btn-outline btn-xl">Learn More</a>
+    </div>
+    <div class="cta-note">No credit card required · Free to join · Withdraw to any Nigerian bank</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top" style="max-width:1160px;margin:0 auto">
+    <div>
+      <div class="footer-brand-logo">Cunk<span>Pay</span></div>
+      <p class="footer-brand-desc">A micro-task marketplace connecting workers with free time to advertisers who need real human engagement.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Platform</div>
+      <ul class="footer-links">
+        <li><a href="auth.html">Sign In</a></li>
+        <li><a href="auth.html">Create Account</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#tasks">Browse Tasks</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <ul class="footer-links">
+        <li><a href="about.html">About Us</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Support</div>
+      <ul class="footer-links">
+        <li><a href="mailto:support@cunkpay.com.ng">support@cunkpay.com.ng</a></li>
+        <li><a href="mailto:info@cunkpay.com.ng">info@cunkpay.com.ng</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom" style="max-width:1160px;margin:0 auto">
+    <div class="footer-copy">© 2026 CunkPay. All rights reserved.</div>
+    <div class="footer-legal">
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="powered-by">Built by <span>Afraah Tech Hub</span></div>
+  </div>
+</footer>
+
+</body>
+</html>

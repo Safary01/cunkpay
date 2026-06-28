@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — CunkPay</title>
+<meta name="description" content="CunkPay's Privacy Policy — how we collect, use, and protect your personal data in accordance with Nigerian law.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --midnight: #0B0F1A; --navy: #111827; --card: #161C2D; --border: #1E2A42;
+  --cobalt: #2563EB; --cobalt-light: #3B82F6; --cobalt-dim: rgba(37,99,235,0.12);
+  --amber: #F59E0B; --amber-dim: rgba(245,158,11,0.12);
+  --green: #10B981; --green-dim: rgba(16,185,129,0.12);
+  --slate: #94A3B8; --muted: #64748B; --white: #FFFFFF; --off-white: #E2E8F0;
+}
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; background: var(--midnight); color: var(--white); line-height: 1.6; overflow-x: hidden; }
+
+nav { display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 64px; background: var(--navy); border-bottom: 1px solid var(--border); }
+.nav-logo { font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; font-weight: 700; color: var(--white); text-decoration: none; }
+.nav-logo span { color: var(--cobalt-light); }
+.nav-right { display: flex; align-items: center; gap: 24px; }
+.nav-right a { color: var(--slate); font-size: 0.875rem; text-decoration: none; transition: color 0.2s; }
+.nav-right a:hover { color: var(--white); }
+.btn { display: inline-flex; align-items: center; padding: 8px 18px; border-radius: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: all 0.15s; }
+.btn-primary { background: var(--cobalt); color: white; }
+.btn-primary:hover { background: var(--cobalt-light); }
+
+/* LAYOUT */
+.policy-wrap { display: grid; grid-template-columns: 220px 1fr; gap: 40px; max-width: 1040px; margin: 0 auto; padding: 52px 40px 80px; align-items: start; }
+
+/* SIDEBAR NAV */
+.policy-nav { position: sticky; top: 24px; }
+.policy-nav-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; padding: 0 12px; }
+.policy-nav-item { display: block; padding: 7px 12px; font-size: 0.8rem; color: var(--slate); text-decoration: none; border-radius: 6px; border-left: 2px solid transparent; margin-bottom: 2px; transition: all 0.15s; }
+.policy-nav-item:hover { color: var(--white); background: var(--card); }
+.policy-nav-item.active { color: var(--white); border-left-color: var(--cobalt); background: var(--cobalt-dim); }
+
+/* CONTENT */
+.policy-content { min-width: 0; }
+.policy-header { margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.policy-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cobalt-light); margin-bottom: 12px; }
+.policy-title { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; letter-spacing: -0.025em; margin-bottom: 12px; }
+.policy-meta { font-size: 0.8rem; color: var(--muted); display: flex; gap: 20px; flex-wrap: wrap; }
+.policy-meta span { display: flex; align-items: center; gap: 5px; }
+
+/* SECTIONS */
+.policy-section { margin-bottom: 44px; scroll-margin-top: 24px; }
+.policy-section-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--white); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.policy-section-title::before { content: ''; display: block; width: 3px; height: 18px; background: var(--cobalt); border-radius: 2px; }
+.policy-p { font-size: 0.875rem; color: var(--slate); line-height: 1.8; margin-bottom: 12px; }
+.policy-p:last-child { margin-bottom: 0; }
+.policy-p a { color: var(--cobalt-light); text-decoration: none; }
+.policy-p a:hover { text-decoration: underline; }
+.policy-list { list-style: none; margin: 10px 0 14px; display: flex; flex-direction: column; gap: 8px; }
+.policy-list li { font-size: 0.875rem; color: var(--slate); display: flex; align-items: flex-start; gap: 10px; line-height: 1.65; }
+.policy-list li::before { content: '→'; color: var(--cobalt-light); flex-shrink: 0; margin-top: 1px; }
+.policy-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.82rem; }
+.policy-table th { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); background: var(--midnight); }
+.policy-table td { padding: 10px 14px; color: var(--slate); border-bottom: 1px solid rgba(30,42,66,0.5); line-height: 1.55; vertical-align: top; }
+.policy-table tr:last-child td { border-bottom: none; }
+.highlight-box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin: 14px 0; font-size: 0.85rem; color: var(--off-white); line-height: 1.7; }
+.highlight-box.info { border-left: 3px solid var(--cobalt); }
+.highlight-box.warning { border-left: 3px solid var(--amber); }
+
+/* FOOTER */
+footer { background: var(--navy); border-top: 1px solid var(--border); padding: 28px 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.footer-copy { font-size: 0.78rem; color: var(--muted); }
+.footer-links-row { display: flex; gap: 20px; }
+.footer-links-row a { font-size: 0.78rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.footer-links-row a:hover { color: var(--white); }
+
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-right a:not(.btn) { display: none; }
+  .policy-wrap { grid-template-columns: 1fr; padding: 32px 20px 60px; }
+  .policy-nav { display: none; }
+  footer { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">Cunk<span>Pay</span></a>
+  <div class="nav-right">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="auth.html" class="btn btn-primary">Get Started</a>
+  </div>
+</nav>
+
+<div class="policy-wrap">
+
+  <!-- SIDEBAR NAV -->
+  <aside class="policy-nav">
+    <div class="policy-nav-title">Contents</div>
+    <a class="policy-nav-item active" href="#introduction">1. Introduction</a>
+    <a class="policy-nav-item" href="#data-collected">2. Data We Collect</a>
+    <a class="policy-nav-item" href="#how-we-use">3. How We Use It</a>
+    <a class="policy-nav-item" href="#data-sharing">4. Data Sharing</a>
+    <a class="policy-nav-item" href="#data-storage">5. Storage & Security</a>
+    <a class="policy-nav-item" href="#your-rights">6. Your Rights</a>
+    <a class="policy-nav-item" href="#cookies">7. Cookies</a>
+    <a class="policy-nav-item" href="#third-parties">8. Third Parties</a>
+    <a class="policy-nav-item" href="#children">9. Children</a>
+    <a class="policy-nav-item" href="#changes">10. Policy Changes</a>
+    <a class="policy-nav-item" href="#contact">11. Contact</a>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="policy-content">
+    <div class="policy-header">
+      <div class="policy-eyebrow">Legal Document</div>
+      <h1 class="policy-title">Privacy Policy</h1>
+      <div class="policy-meta">
+        <span>📅 Effective: 1 January 2026</span>
+        <span>📍 Jurisdiction: Federal Republic of Nigeria</span>
+        <span>🏢 CunkPay · Afraah Tech Hub</span>
+      </div>
+    </div>
+
+    <!-- 1. INTRODUCTION -->
+    <div class="policy-section" id="introduction">
+      <div class="policy-section-title">Introduction</div>
+      <p class="policy-p">Welcome to CunkPay, a micro-task marketplace operated by Afraah Tech Hub ("we", "us", "our"), based in Abuja, Federal Republic of Nigeria. This Privacy Policy explains how we collect, use, store, and protect your personal information when you use our platform at cunkpay.com.ng (the "Platform").</p>
+      <p class="policy-p">By creating an account or using CunkPay in any way, you agree to the terms of this Privacy Policy. If you do not agree, please do not use the Platform.</p>
+      <div class="highlight-box info">
+        This policy applies to all users of CunkPay — Workers, Advertisers, and Admins. It covers data collected through our website and any services provided through the Platform.
+      </div>
+    </div>
+
+    <!-- 2. DATA COLLECTED -->
+    <div class="policy-section" id="data-collected">
+      <div class="policy-section-title">Data We Collect</div>
+      <p class="policy-p">We collect only the data necessary to operate the Platform and provide our services. We do not collect data beyond what is listed below.</p>
+      <table class="policy-table">
+        <thead>
+          <tr><th>Data Type</th><th>What We Collect</th><th>When Collected</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Identity</td><td>Full name</td><td>At registration</td></tr>
+          <tr><td>Contact</td><td>Email address, phone number</td><td>At registration</td></tr>
+          <tr><td>Account</td><td>Role (Worker/Advertiser), account status, registration date</td><td>At registration</td></tr>
+          <tr><td>Financial</td><td>Wallet balances, transaction history, deposit and withdrawal records</td><td>During platform use</td></tr>
+          <tr><td>Bank Details</td><td>Bank name, account number, account name (for withdrawals only)</td><td>When requesting a withdrawal</td></tr>
+          <tr><td>Proof Content</td><td>Images uploaded as task proof, text submitted as task proof</td><td>When submitting task proof</td></tr>
+          <tr><td>Task Data</td><td>Tasks created by Advertisers including title, description, reward, proof type</td><td>When creating tasks</td></tr>
+          <tr><td>Usage Data</td><td>Firebase authentication logs, access timestamps</td><td>Automatically during use</td></tr>
+        </tbody>
+      </table>
+      <p class="policy-p">We do not collect payment card numbers, BVN, NIN, passwords in readable form, or any biometric data.</p>
+    </div>
+
+    <!-- 3. HOW WE USE -->
+    <div class="policy-section" id="how-we-use">
+      <div class="policy-section-title">How We Use Your Data</div>
+      <p class="policy-p">We use your data solely to operate and improve the CunkPay platform. Specifically:</p>
+      <ul class="policy-list">
+        <li>To create and manage your account and verify your identity</li>
+        <li>To process wallet transactions — deposits, task payments, and withdrawals</li>
+        <li>To enable Advertisers to post tasks and Workers to submit proof</li>
+        <li>To allow Admin to verify deposits and process withdrawals</li>
+        <li>To maintain the immutable transaction ledger for financial transparency</li>
+        <li>To display your proof images and text to the Advertiser who posted the task</li>
+        <li>To investigate and resolve disputes between Workers and Advertisers</li>
+        <li>To send account-related communications (e.g. deposit approved, proof reviewed)</li>
+        <li>To detect and prevent fraud or platform abuse</li>
+      </ul>
+      <div class="highlight-box warning">
+        We do not use your data for advertising, profiling, or any purpose unrelated to operating the Platform.
+      </div>
+    </div>
+
+    <!-- 4. DATA SHARING -->
+    <div class="policy-section" id="data-sharing">
+      <div class="policy-section-title">Data Sharing</div>
+      <p class="policy-p">We do not sell, rent, or trade your personal data to any third party. Your data is shared only in the following limited circumstances:</p>
+      <ul class="policy-list">
+        <li><strong style="color:var(--off-white)">With Advertisers:</strong> When you submit task proof as a Worker, the Advertiser who posted the task can view your proof image or text and your display name.</li>
+        <li><strong style="color:var(--off-white)">With Admin:</strong> Platform administrators can access all account and transaction data as necessary to operate the Platform, approve deposits, and process withdrawals.</li>
+        <li><strong style="color:var(--off-white)">With Firebase (Google):</strong> Authentication and database services are provided by Google Firebase. Your data is stored on Firebase servers subject to Google's data processing terms.</li>
+        <li><strong style="color:var(--off-white)">With Cloudinary:</strong> Proof images uploaded to the Platform are stored on Cloudinary's servers. By uploading an image, you agree to Cloudinary's terms of service.</li>
+        <li><strong style="color:var(--off-white)">Legal requirements:</strong> We may disclose your data if required by Nigerian law, a court order, or a lawful request by a government authority.</li>
+      </ul>
+    </div>
+
+    <!-- 5. STORAGE & SECURITY -->
+    <div class="policy-section" id="data-storage">
+      <div class="policy-section-title">Storage & Security</div>
+      <p class="policy-p">Your data is stored on Google Firebase servers in the <strong style="color:var(--off-white)">europe-west1 (Belgium)</strong> region. Firebase provides industry-standard encryption in transit (TLS) and at rest.</p>
+      <p class="policy-p">Proof images are stored on Cloudinary's global CDN and served over HTTPS.</p>
+      <p class="policy-p">Passwords are managed entirely by Firebase Authentication — we never store your password in readable form.</p>
+      <p class="policy-p">The transaction ledger is stored as an append-only collection in Firestore with security rules that prevent any record from being updated or deleted — including by platform administrators. This ensures the financial integrity of your history.</p>
+      <div class="highlight-box info">
+        While we implement reasonable security measures, no internet service can guarantee absolute security. You are responsible for keeping your account credentials confidential.
+      </div>
+    </div>
+
+    <!-- 6. YOUR RIGHTS -->
+    <div class="policy-section" id="your-rights">
+      <div class="policy-section-title">Your Rights</div>
+      <p class="policy-p">Under the Nigeria Data Protection Act (NDPA) 2023 and related regulations, you have the following rights regarding your personal data:</p>
+      <ul class="policy-list">
+        <li><strong style="color:var(--off-white)">Right to access:</strong> Request a copy of the personal data we hold about you.</li>
+        <li><strong style="color:var(--off-white)">Right to rectification:</strong> Correct inaccurate data — you can update your name and phone number directly from your account settings.</li>
+        <li><strong style="color:var(--off-white)">Right to erasure:</strong> Request deletion of your account and personal data. Note: transaction ledger entries cannot be deleted as they form part of an immutable financial record.</li>
+        <li><strong style="color:var(--off-white)">Right to object:</strong> Object to processing of your data where no legitimate basis exists.</li>
+        <li><strong style="color:var(--off-white)">Right to data portability:</strong> Request your data in a machine-readable format.</li>
+      </ul>
+      <p class="policy-p">To exercise any of these rights, contact us at <a href="mailto:info@cunkpay.com.ng">info@cunkpay.com.ng</a>. We will respond within 30 days.</p>
+    </div>
+
+    <!-- 7. COOKIES -->
+    <div class="policy-section" id="cookies">
+      <div class="policy-section-title">Cookies</div>
+      <p class="policy-p">CunkPay uses minimal cookies necessary to operate the Platform. Specifically:</p>
+      <ul class="policy-list">
+        <li><strong style="color:var(--off-white)">Authentication cookies:</strong> Firebase sets cookies to maintain your signed-in session. These are essential and cannot be disabled while using the Platform.</li>
+        <li><strong style="color:var(--off-white)">No advertising cookies:</strong> We do not use advertising cookies, tracking pixels, or third-party analytics cookies.</li>
+      </ul>
+      <p class="policy-p">You can clear cookies at any time from your browser settings, which will sign you out of CunkPay.</p>
+    </div>
+
+    <!-- 8. THIRD PARTIES -->
+    <div class="policy-section" id="third-parties">
+      <div class="policy-section-title">Third-Party Services</div>
+      <p class="policy-p">CunkPay uses the following third-party services to operate. Each has its own privacy policy:</p>
+      <table class="policy-table">
+        <thead><tr><th>Service</th><th>Purpose</th><th>Provider</th></tr></thead>
+        <tbody>
+          <tr><td>Firebase Authentication</td><td>User sign-in and session management</td><td>Google LLC</td></tr>
+          <tr><td>Firestore</td><td>Database storage for accounts, tasks, transactions</td><td>Google LLC</td></tr>
+          <tr><td>Cloudinary</td><td>Storage and delivery of proof images</td><td>Cloudinary Ltd</td></tr>
+          <tr><td>Google Fonts</td><td>Typography (Space Grotesk, Inter)</td><td>Google LLC</td></tr>
+          <tr><td>GitHub Pages</td><td>Website hosting</td><td>GitHub, Inc.</td></tr>
+        </tbody>
+      </table>
+      <p class="policy-p">We have no control over how these providers handle data beyond their published terms. We encourage you to review their privacy policies.</p>
+    </div>
+
+    <!-- 9. CHILDREN -->
+    <div class="policy-section" id="children">
+      <div class="policy-section-title">Children's Privacy</div>
+      <p class="policy-p">CunkPay is not intended for use by anyone under the age of 18. We do not knowingly collect personal data from minors. If you believe a minor has created an account on our Platform, please contact us at <a href="mailto:info@cunkpay.com.ng">info@cunkpay.com.ng</a> and we will delete the account promptly.</p>
+    </div>
+
+    <!-- 10. CHANGES -->
+    <div class="policy-section" id="changes">
+      <div class="policy-section-title">Changes to This Policy</div>
+      <p class="policy-p">We may update this Privacy Policy from time to time. When we do, we will update the effective date at the top of this page. If changes are material, we will notify registered users via the email address on their account.</p>
+      <p class="policy-p">Continued use of CunkPay after changes are posted constitutes your acceptance of the updated policy.</p>
+    </div>
+
+    <!-- 11. CONTACT -->
+    <div class="policy-section" id="contact">
+      <div class="policy-section-title">Contact Us</div>
+      <p class="policy-p">For any privacy-related questions, data requests, or concerns, contact us:</p>
+      <div class="highlight-box info">
+        <strong style="color:var(--cobalt-light)">CunkPay Data Enquiries</strong><br>
+        Operated by Afraah Tech Hub · Abuja, Nigeria<br>
+        Email: <a href="mailto:info@cunkpay.com.ng">info@cunkpay.com.ng</a><br>
+        Support: <a href="mailto:support@cunkpay.com.ng">support@cunkpay.com.ng</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-copy">© 2026 CunkPay · Built by Afraah Tech Hub</div>
+  <div class="footer-links-row">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="auth.html">Sign In</a>
+  </div>
+</footer>
+
+<script>
+// Highlight active nav item on scroll
+const sections = document.querySelectorAll(".policy-section");
+const navItems = document.querySelectorAll(".policy-nav-item");
+window.addEventListener("scroll", () => {
+  let current = "";
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 60) current = s.id; });
+  navItems.forEach(n => {
+    n.classList.toggle("active", n.getAttribute("href") === "#" + current);
+  });
+});
+</script>
+
+</body>
+</html>

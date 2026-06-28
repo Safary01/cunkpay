@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About CunkPay — Micro-Task Marketplace</title>
+<meta name="description" content="Learn about CunkPay — a micro-task marketplace built to help people earn from their free time and help businesses grow with real human engagement.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --midnight: #0B0F1A; --navy: #111827; --card: #161C2D; --border: #1E2A42;
+  --cobalt: #2563EB; --cobalt-light: #3B82F6; --cobalt-dim: rgba(37,99,235,0.12);
+  --amber: #F59E0B; --amber-dim: rgba(245,158,11,0.12);
+  --green: #10B981; --green-dim: rgba(16,185,129,0.12);
+  --slate: #94A3B8; --muted: #64748B; --white: #FFFFFF; --off-white: #E2E8F0;
+}
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; background: var(--midnight); color: var(--white); line-height: 1.6; overflow-x: hidden; }
+
+nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 64px;
+  background: var(--navy); border-bottom: 1px solid var(--border);
+}
+.nav-logo { font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; font-weight: 700; color: var(--white); text-decoration: none; }
+.nav-logo span { color: var(--cobalt-light); }
+.nav-right { display: flex; align-items: center; gap: 24px; }
+.nav-right a { color: var(--slate); font-size: 0.875rem; text-decoration: none; transition: color 0.2s; }
+.nav-right a:hover { color: var(--white); }
+.btn { display: inline-flex; align-items: center; padding: 8px 18px; border-radius: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: all 0.15s; }
+.btn-primary { background: var(--cobalt); color: white; }
+.btn-primary:hover { background: var(--cobalt-light); }
+.btn-outline { background: transparent; color: var(--white); border: 1px solid var(--border); }
+.btn-outline:hover { border-color: var(--cobalt); color: var(--cobalt-light); }
+
+/* PAGE HERO */
+.page-hero { padding: 72px 40px 60px; max-width: 760px; margin: 0 auto; text-align: center; }
+.page-eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cobalt-light); margin-bottom: 14px; }
+.page-title { font-family: 'Space Grotesk', sans-serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 18px; }
+.page-sub { color: var(--slate); font-size: 1.05rem; line-height: 1.75; }
+
+.full-divider { width: 100vw; margin-left: calc(-50vw + 50%); height: 1px; background: var(--border); }
+.section { padding: 64px 40px; max-width: 960px; margin: 0 auto; }
+
+/* MISSION */
+.mission-block { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 40px; position: relative; overflow: hidden; margin-bottom: 48px; }
+.mission-block::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--cobalt), var(--amber), var(--green)); }
+.mission-quote { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 600; line-height: 1.55; letter-spacing: -0.015em; color: var(--white); margin-bottom: 20px; }
+.mission-quote em { color: var(--amber); font-style: normal; }
+.mission-body { font-size: 0.92rem; color: var(--slate); line-height: 1.8; }
+
+/* TWO COL */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+
+/* VALUE CARDS */
+.value-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 26px; }
+.value-icon { font-size: 1.5rem; margin-bottom: 12px; display: block; }
+.value-title { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+.value-desc { font-size: 0.83rem; color: var(--slate); line-height: 1.65; }
+
+/* WHO IT IS FOR */
+.who-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.who-card { border-radius: 14px; padding: 28px; position: relative; overflow: hidden; }
+.who-worker { background: var(--green-dim); border: 1px solid rgba(16,185,129,0.25); }
+.who-advertiser { background: var(--cobalt-dim); border: 1px solid rgba(37,99,235,0.25); }
+.who-icon { font-size: 2rem; margin-bottom: 14px; display: block; }
+.who-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
+.who-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.who-list li { font-size: 0.85rem; color: var(--off-white); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+.who-list li::before { content: '→'; color: var(--cobalt-light); flex-shrink: 0; margin-top: 1px; }
+.who-worker .who-list li::before { color: var(--green); }
+
+/* TEAM */
+.team-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 32px; text-align: center; }
+.team-logo { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--cobalt-light); margin-bottom: 10px; }
+.team-desc { font-size: 0.88rem; color: var(--slate); line-height: 1.75; max-width: 560px; margin: 0 auto 20px; }
+.team-link { color: var(--cobalt-light); text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+.team-link:hover { text-decoration: underline; }
+
+/* STATS ROW */
+.about-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px; }
+.about-stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px 16px; text-align: center; }
+.about-stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.025em; margin-bottom: 4px; }
+.about-stat-label { font-size: 0.75rem; color: var(--muted); }
+
+/* CTA */
+.about-cta { text-align: center; padding: 52px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
+.about-cta-title { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px; }
+.about-cta-sub { font-size: 0.88rem; color: var(--slate); margin-bottom: 28px; line-height: 1.65; max-width: 400px; margin-left: auto; margin-right: auto; }
+.cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* FOOTER */
+footer { background: var(--navy); border-top: 1px solid var(--border); padding: 28px 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.footer-copy { font-size: 0.78rem; color: var(--muted); }
+.footer-links-row { display: flex; gap: 20px; }
+.footer-links-row a { font-size: 0.78rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.footer-links-row a:hover { color: var(--white); }
+
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-right a:not(.btn) { display: none; }
+  .page-hero, .section { padding-left: 20px; padding-right: 20px; }
+  .two-col, .who-grid { grid-template-columns: 1fr; }
+  .about-stats { grid-template-columns: 1fr 1fr; }
+  footer { flex-direction: column; text-align: center; }
+}
+@media (max-width: 480px) {
+  .about-stats { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">Cunk<span>Pay</span></a>
+  <div class="nav-right">
+    <a href="index.html">Home</a>
+    <a href="contact.html">Contact</a>
+    <a href="privacy-policy.html">Privacy</a>
+    <a href="auth.html" class="btn btn-primary">Get Started</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-eyebrow">About CunkPay</div>
+  <h1 class="page-title">Built for people who have time.<br>Built for brands that need reach.</h1>
+  <p class="page-sub">CunkPay started with a simple idea — there are people with free time willing to do small online tasks, and there are businesses that desperately need real human engagement on their content. We built the bridge.</p>
+</div>
+
+<div class="full-divider"></div>
+
+<div class="section">
+
+  <!-- MISSION -->
+  <div class="mission-block">
+    <div class="mission-quote">
+      "We believe your free time has value. Whether you have <em>30 minutes</em> or <em>3 hours</em>, there's a task waiting for you — and a payment waiting when you're done."
+    </div>
+    <p class="mission-body">
+      CunkPay is a micro-task marketplace that connects two types of people: workers who want to earn money in their spare time, and advertisers who want real human interactions on their websites, apps, social media accounts, and more. The platform handles the money, the proof, and the trust layer — so both sides can focus on what they do best.
+    </p>
+  </div>
+
+  <!-- STATS -->
+  <div class="about-stats">
+    <div class="about-stat">
+      <div class="about-stat-num" style="color:var(--green)">Free</div>
+      <div class="about-stat-label">To join for workers</div>
+    </div>
+    <div class="about-stat">
+      <div class="about-stat-num" style="color:var(--cobalt-light)">3</div>
+      <div class="about-stat-label">Types of proof accepted</div>
+    </div>
+    <div class="about-stat">
+      <div class="about-stat-num" style="color:var(--amber)">10%</div>
+      <div class="about-stat-label">Transparent platform fee</div>
+    </div>
+    <div class="about-stat">
+      <div class="about-stat-num" style="color:var(--white)">100%</div>
+      <div class="about-stat-label">Real human activity</div>
+    </div>
+  </div>
+
+  <!-- WHO IT'S FOR -->
+  <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:20px">Who is CunkPay for?</h2>
+  <div class="who-grid" style="margin-bottom:48px">
+    <div class="who-card who-worker">
+      <span class="who-icon">👷</span>
+      <div class="who-title">Workers</div>
+      <ul class="who-list">
+        <li>People with free time who want to earn extra income online</li>
+        <li>Students looking for flexible ways to make money between classes</li>
+        <li>Anyone willing to complete simple online tasks and submit proof</li>
+        <li>People who want to be paid for interactions they already do daily</li>
+      </ul>
+    </div>
+    <div class="who-card who-advertiser">
+      <span class="who-icon">📢</span>
+      <div class="who-title">Advertisers</div>
+      <ul class="who-list">
+        <li>Businesses looking for real engagement on social media accounts</li>
+        <li>App developers who need genuine downloads, ratings, and reviews</li>
+        <li>Website owners who want authentic traffic and visitor activity</li>
+        <li>Content creators growing their presence on any platform</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- VALUES -->
+  <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:20px">What we stand for</h2>
+  <div class="two-col" style="margin-bottom:48px">
+    <div class="value-card">
+      <span class="value-icon">🔍</span>
+      <div class="value-title">Transparency</div>
+      <p class="value-desc">Every fee is visible before you act. Deposit fees, withdrawal fees, and task budgets are all shown clearly. No surprises, no hidden charges.</p>
+    </div>
+    <div class="value-card">
+      <span class="value-icon">🤝</span>
+      <div class="value-title">Fairness</div>
+      <p class="value-desc">Workers get paid for approved work. Advertisers get real proof of task completion. Neither side pays more than they agreed to.</p>
+    </div>
+    <div class="value-card">
+      <span class="value-icon">🔒</span>
+      <div class="value-title">Trust</div>
+      <p class="value-desc">An immutable transaction ledger means every naira is accounted for. Admin oversight ensures deposits and withdrawals are verified before processing.</p>
+    </div>
+    <div class="value-card">
+      <span class="value-icon">⚡</span>
+      <div class="value-title">Simplicity</div>
+      <p class="value-desc">Sign up, choose a task, submit proof, get paid. Post a task, fund it, review proofs, grow your brand. CunkPay removes every unnecessary step.</p>
+    </div>
+  </div>
+
+  <!-- TEAM -->
+  <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:20px">The team behind CunkPay</h2>
+  <div class="team-card" style="margin-bottom:48px">
+    <div class="team-logo">Afraah Tech Hub</div>
+    <p class="team-desc">
+      CunkPay is built and maintained by Afraah Tech Hub — a digital skills training organisation based in Abuja, Nigeria. Beyond training, we build practical digital platforms that solve real problems for real people. CunkPay is one of those platforms.
+    </p>
+    <a class="team-link" href="mailto:info@cunkpay.com.ng">Get in touch → info@cunkpay.com.ng</a>
+  </div>
+
+  <!-- CTA -->
+  <div class="about-cta">
+    <div class="about-cta-title">Ready to get started?</div>
+    <p class="about-cta-sub">Join free as a Worker and start earning today, or sign up as an Advertiser and put your budget to work with real humans.</p>
+    <div class="cta-btns">
+      <a href="auth.html" class="btn btn-primary" style="padding:12px 24px;font-size:0.9rem">Create Free Account →</a>
+      <a href="contact.html" class="btn btn-outline" style="padding:12px 24px;font-size:0.9rem">Contact Us</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-copy">© 2026 CunkPay · Built by Afraah Tech Hub</div>
+  <div class="footer-links-row">
+    <a href="index.html">Home</a>
+    <a href="contact.html">Contact</a>
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="auth.html">Sign In</a>
+  </div>
+</footer>
+
+</body>
+</html>
