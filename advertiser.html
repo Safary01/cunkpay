@@ -630,8 +630,9 @@ window.createTask = async function() {
     loadDashboard();
     loadMyTasks();
   } catch (e) {
-    showBanner(alertEl, "Failed to create task. Try again.", "error");
-  } finally {
+    console.error("ERROR:", e.message);
+    showBanner(alertEl, e.message || "Failed to create task. Try again.", "error");
+} finally {
     btn.disabled = false; spinner.style.display = "none";
   }
 };
