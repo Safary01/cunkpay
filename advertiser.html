@@ -281,7 +281,7 @@
       <div class="task-form-grid">
         <div class="field-group">
           <label class="field-label">Reward Per Slot (₦)</label>
-          <input class="field-input" type="number" id="t-reward" placeholder="e.g. 500" min="50" oninput="calcTaskCost()">
+          <input class="field-input" type="number" id="t-reward" placeholder="e.g. 500" min="10" oninput="calcTaskCost()">
         </div>
         <div class="field-group">
           <label class="field-label">Number of Slots</label>
@@ -582,7 +582,7 @@ window.createTask = async function() {
 
   if (!title) { showBanner(alertEl, "Please enter a task title.", "error"); return; }
   if (!desc) { showBanner(alertEl, "Please enter a task description.", "error"); return; }
-  if (!reward || reward < 50) { showBanner(alertEl, "Minimum reward is ₦50 per slot.", "error"); return; }
+  if (!reward || reward < 10) { showBanner(alertEl, "Minimum reward is ₦50 per slot.", "error"); return; }
   if (!slots || slots < 1) { showBanner(alertEl, "Please enter at least 1 slot.", "error"); return; }
 
   const totalCost = reward * slots;
