@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /auth.html
+Disallow: /worker.html
+Disallow: /advertiser.html
+Disallow: /admin.html
+
+Sitemap: https://cunkpay.com.ng/sitemap.xml
