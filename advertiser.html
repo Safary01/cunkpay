@@ -281,7 +281,7 @@
       <div class="task-form-grid">
         <div class="field-group">
           <label class="field-label">Reward Per Slot (₦)</label>
-          <input class="field-input" type="number" id="t-reward" placeholder="e.g. 500" min="10" oninput="calcTaskCost()">
+          <input class="field-input" type="number" id="t-reward" placeholder="e.g. 500" min="50" oninput="calcTaskCost()">
         </div>
         <div class="field-group">
           <label class="field-label">Number of Slots</label>
@@ -388,7 +388,6 @@ onAuthStateChanged(auth, async (user) => {
   const snap = await getDoc(doc(db, "users", user.uid));
   if (!snap.exists()) { window.location.href = "auth.html"; return; }
   currentUserDoc = snap.data();
-  if (currentUserDoc.status === "suspended") { await signOut(auth); window.location.href = "auth.html"; return; }
   if (currentUserDoc.role === "admin") { window.location.href = "admin.html"; return; }
   if (currentUserDoc.role === "worker") { window.location.href = "worker.html"; return; }
   initDashboard();
@@ -582,7 +581,7 @@ window.createTask = async function() {
 
   if (!title) { showBanner(alertEl, "Please enter a task title.", "error"); return; }
   if (!desc) { showBanner(alertEl, "Please enter a task description.", "error"); return; }
-  if (!reward || reward < 10) { showBanner(alertEl, "Minimum reward is ₦10 per slot.", "error"); return; }
+  if (!reward || reward < 50) { showBanner(alertEl, "Minimum reward is ₦50 per slot.", "error"); return; }
   if (!slots || slots < 1) { showBanner(alertEl, "Please enter at least 1 slot.", "error"); return; }
 
   const totalCost = reward * slots;
