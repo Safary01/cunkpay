@@ -38,11 +38,50 @@
   .amt-pend { color: var(--amber); }
   .switch-role-note { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
   .role-switch-card { background: var(--midnight); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+
+  /* ── CATEGORY FILTER BAR ── */
+  .filter-bar {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 16px; align-items: center;
+  }
+  .filter-bar-label {
+    font-size: 0.75rem; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-right: 4px; white-space: nowrap;
+  }
+  .cat-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 12px; border-radius: 20px; cursor: pointer;
+    font-size: 0.78rem; font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--midnight); color: var(--slate);
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .cat-chip:hover { border-color: var(--cobalt); color: var(--white); }
+  .cat-chip.active {
+    background: var(--cobalt-dim); color: var(--cobalt-light);
+    border-color: var(--cobalt);
+  }
+  .cat-chip.active-all {
+    background: var(--cobalt); color: var(--white);
+    border-color: var(--cobalt);
+  }
+  .task-count-label {
+    font-size: 0.78rem; color: var(--muted);
+    margin-left: auto; white-space: nowrap;
+  }
+
+  /* ── CATEGORY BADGE ON TASK CARD ── */
+  .cat-badge {
+    display: inline-block; font-size: 0.68rem; font-weight: 600;
+    padding: 2px 8px; border-radius: 20px;
+    background: var(--cobalt-dim); color: var(--cobalt-light);
+    border: 1px solid rgba(37,99,235,0.2);
+  }
 </style>
 </head>
 <body>
 
-<!-- TOAST CONTAINER -->
 <div id="toast-container"></div>
 
 <div class="app-layout">
@@ -114,9 +153,7 @@
             <div class="stat-card-label">Total Earned</div>
           </div>
         </div>
-
         <div class="two-col">
-          <!-- Recent submissions -->
           <div class="section-card">
             <div class="section-card-header">
               <div class="section-card-title">📸 Recent Submissions</div>
@@ -126,8 +163,6 @@
               <div class="page-loader"><div class="spinner spinner-lg"></div>Loading…</div>
             </div>
           </div>
-
-          <!-- Available tasks preview -->
           <div class="section-card">
             <div class="section-card-header">
               <div class="section-card-title">📋 Available Tasks</div>
@@ -145,10 +180,29 @@
         <div class="section-card">
           <div class="section-card-header">
             <div class="section-card-title">📋 Available Tasks</div>
-            <div style="font-size:0.78rem;color:var(--muted)" id="task-count">Loading…</div>
           </div>
-          <div class="section-card-body" id="tasks-list">
-            <div class="page-loader"><div class="spinner spinner-lg"></div>Loading tasks…</div>
+          <div class="section-card-body">
+            <!-- ── FILTER BAR ── -->
+            <div class="filter-bar" id="filter-bar">
+              <span class="filter-bar-label">Filter:</span>
+              <span class="cat-chip active-all" onclick="setCategory('all', this)">All</span>
+              <span class="cat-chip" onclick="setCategory('Facebook', this)">📘 Facebook</span>
+              <span class="cat-chip" onclick="setCategory('Instagram', this)">📸 Instagram</span>
+              <span class="cat-chip" onclick="setCategory('Twitter/X', this)">🐦 Twitter/X</span>
+              <span class="cat-chip" onclick="setCategory('YouTube', this)">▶️ YouTube</span>
+              <span class="cat-chip" onclick="setCategory('TikTok', this)">🎵 TikTok</span>
+              <span class="cat-chip" onclick="setCategory('Google', this)">🔍 Google</span>
+              <span class="cat-chip" onclick="setCategory('WhatsApp', this)">💬 WhatsApp</span>
+              <span class="cat-chip" onclick="setCategory('Telegram', this)">✈️ Telegram</span>
+              <span class="cat-chip" onclick="setCategory('App Store / Play Store', this)">📱 App Store</span>
+              <span class="cat-chip" onclick="setCategory('Website', this)">🌐 Website</span>
+              <span class="cat-chip" onclick="setCategory('Other', this)">📌 Other</span>
+              <span class="task-count-label" id="task-count"></span>
+            </div>
+            <!-- ── TASK LIST ── -->
+            <div id="tasks-list">
+              <div class="page-loader"><div class="spinner spinner-lg"></div>Loading tasks…</div>
+            </div>
           </div>
         </div>
       </div>
@@ -172,7 +226,7 @@
                 </tr>
               </thead>
               <tbody id="submissions-tbody">
-                <tr><td colspan="5"><div class="page-loader"><div class="spinner"></div>Loading…</div></td></tr>
+                <tr><td colspan="6"><div class="page-loader"><div class="spinner"></div>Loading…</div></td></tr>
               </tbody>
             </table>
           </div>
@@ -302,9 +356,9 @@
         </div>
       </div>
 
-    </div><!-- /page-body -->
-  </div><!-- /main-content -->
-</div><!-- /app-layout -->
+    </div>
+  </div>
+</div>
 
 <!-- ══ MODAL: TASK DETAIL / SUBMIT PROOF ══ -->
 <div class="modal-overlay" id="task-modal">
@@ -317,6 +371,7 @@
       <div class="task-detail-header">
         <div>
           <span class="badge badge-active" id="modal-proof-badge">Image</span>
+          <span class="cat-badge" id="modal-cat-badge" style="margin-left:6px"></span>
           <div style="font-size:0.78rem;color:var(--muted);margin-top:6px" id="modal-slots-info"></div>
         </div>
         <div class="task-detail-reward" id="modal-reward">₦0</div>
@@ -383,14 +438,11 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('dispute-modal')">Cancel</button>
-      <button class="btn btn-warning" onclick="submitDispute()">Submit Dispute</button>
+      <button class="btn btn-amber" onclick="submitDispute()">Submit Dispute</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════
-     FIREBASE + CLOUDINARY SCRIPTS
-══════════════════════════════════ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -408,18 +460,22 @@ const firebaseConfig = {
   appId: "1:789585022129:web:935f8bef2232a43503e690"
 };
 
+const CLOUDINARY_CLOUD = "your_cloud_name";
+const CLOUDINARY_PRESET = "your_upload_preset";
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-const CLOUDINARY_CLOUD = "your_cloud_name"; // ← Replace with your Cloudinary cloud name
-const CLOUDINARY_PRESET = "your_upload_preset"; // ← Replace with your unsigned upload preset
 
 let currentUser = null;
 let currentUserDoc = null;
 let selectedTask = null;
 let selectedFile = null;
 let disputingSubId = null;
+
+// All fetched tasks stored here — filtering is client-side
+let allFetchedTasks = [];
+let activeCategory = "all";
 
 // ── AUTH GUARD ──
 onAuthStateChanged(auth, async (user) => {
@@ -458,14 +514,17 @@ window.showPage = function(page) {
   const btn = [...document.querySelectorAll(".nav-item")].find(b => b.getAttribute("onclick")?.includes(`'${page}'`));
   if (btn) btn.classList.add("active");
   closeSidebar();
-
   if (page === "tasks") loadTasks();
   if (page === "my-submissions") loadSubmissions();
   if (page === "wallet") loadWallet();
   if (page === "withdraw") loadWithdrawPage();
 };
 
-const pageTitles = { dashboard: "Dashboard", tasks: "Browse Tasks", "my-submissions": "My Submissions", wallet: "My Wallet", withdraw: "Withdraw Funds", settings: "Settings" };
+const pageTitles = {
+  dashboard: "Dashboard", tasks: "Browse Tasks",
+  "my-submissions": "My Submissions", wallet: "My Wallet",
+  withdraw: "Withdraw Funds", settings: "Settings"
+};
 
 // ── DASHBOARD ──
 async function loadDashboard() {
@@ -473,13 +532,11 @@ async function loadDashboard() {
   const snap = await getDoc(doc(db, "users", uid));
   const d = snap.data();
   currentUserDoc = d;
-
   document.getElementById("stat-available").textContent = formatNaira(d.walletAvailable || 0);
   document.getElementById("stat-pending").textContent = formatNaira(d.walletReserved || 0);
   document.getElementById("stat-total-earned").textContent = formatNaira(d.totalEarned || 0);
   updateHeaderBalance(d.walletAvailable || 0);
 
-  // Count completed submissions
   const subQ = query(collection(db, "submissions"), where("workerId", "==", uid), where("status", "==", "approved"));
   const subSnap = await getDocs(subQ);
   document.getElementById("stat-completed").textContent = subSnap.size;
@@ -492,8 +549,10 @@ async function loadDashSubmissions(uid) {
   const q = query(collection(db, "submissions"), where("workerId", "==", uid), orderBy("submittedAt", "desc"), limit(5));
   const snap = await getDocs(q);
   const el = document.getElementById("dash-submissions");
-  if (snap.empty) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📸</div><div class="empty-state-title">No submissions yet</div><div class="empty-state-desc">Accept a task and submit proof to start earning.</div></div>'; return; }
-
+  if (snap.empty) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📸</div><div class="empty-state-title">No submissions yet</div><div class="empty-state-desc">Accept a task and submit proof to start earning.</div></div>';
+    return;
+  }
   let html = "";
   for (const d of snap.docs) {
     const s = d.data();
@@ -511,43 +570,80 @@ async function loadDashTasks(uid) {
   const q = query(collection(db, "tasks"), where("status", "==", "active"), limit(4));
   const snap = await getDocs(q);
   const el = document.getElementById("dash-tasks");
-  if (snap.empty) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No tasks yet</div><div class="empty-state-desc">Check back soon — advertisers are adding tasks.</div></div>'; return; }
+  if (snap.empty) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No tasks yet</div><div class="empty-state-desc">Check back soon — advertisers are adding tasks.</div></div>';
+    return;
+  }
   el.innerHTML = snap.docs.map(d => taskCardHTML(d.id, d.data())).join("");
 }
 
-// ── TASKS ──
+// ── TASKS WITH CATEGORY FILTER ──
 async function loadTasks() {
   const uid = currentUser.uid;
   const el = document.getElementById("tasks-list");
   el.innerHTML = '<div class="page-loader"><div class="spinner spinner-lg"></div>Loading tasks…</div>';
 
-  // Get tasks the worker already submitted to
+  // Get already-submitted task IDs
   const mySubQ = query(collection(db, "submissions"), where("workerId", "==", uid));
   const mySubSnap = await getDocs(mySubQ);
   const submittedTaskIds = new Set(mySubSnap.docs.map(d => d.data().taskId));
 
+  // Fetch all active tasks
   const q = query(collection(db, "tasks"), where("status", "==", "active"), orderBy("createdAt", "desc"));
   const snap = await getDocs(q);
 
-  document.getElementById("task-count").textContent = `${snap.size} task${snap.size !== 1 ? "s" : ""} available`;
+  // Store full list with submission state
+  allFetchedTasks = snap.docs.map(d => ({
+    id: d.id,
+    ...d.data(),
+    alreadyDone: submittedTaskIds.has(d.id),
+    full: d.data().filledSlots >= d.data().totalSlots
+  }));
 
-  if (snap.empty) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No tasks available</div><div class="empty-state-desc">Check back soon.</div></div>';
+  renderFilteredTasks();
+}
+
+// ── CATEGORY FILTER ──
+window.setCategory = function(cat, chip) {
+  activeCategory = cat;
+  // Update chip styles
+  document.querySelectorAll(".cat-chip").forEach(c => {
+    c.classList.remove("active", "active-all");
+  });
+  if (cat === "all") {
+    chip.classList.add("active-all");
+  } else {
+    chip.classList.add("active");
+  }
+  renderFilteredTasks();
+};
+
+function renderFilteredTasks() {
+  const el = document.getElementById("tasks-list");
+  const countEl = document.getElementById("task-count");
+
+  let filtered = allFetchedTasks;
+  if (activeCategory !== "all") {
+    filtered = allFetchedTasks.filter(t => (t.category || "Other") === activeCategory);
+  }
+
+  countEl.textContent = `${filtered.length} task${filtered.length !== 1 ? "s" : ""}`;
+
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">📋</div>
+      <div class="empty-state-title">No ${activeCategory === "all" ? "" : activeCategory + " "}tasks available</div>
+      <div class="empty-state-desc">${activeCategory === "all" ? "Check back soon." : "Try a different category or check back later."}</div>
+    </div>`;
     return;
   }
 
-  let html = "";
-  for (const d of snap.docs) {
-    const task = d.data();
-    const alreadyDone = submittedTaskIds.has(d.id);
-    const full = task.filledSlots >= task.totalSlots;
-    html += taskCardHTML(d.id, task, alreadyDone, full);
-  }
-  el.innerHTML = html;
+  el.innerHTML = filtered.map(t => taskCardHTML(t.id, t, t.alreadyDone, t.full)).join("");
 }
 
 function taskCardHTML(id, task, alreadyDone = false, full = false) {
-  const pct = Math.round((task.filledSlots / task.totalSlots) * 100);
+  const pct = Math.round(((task.filledSlots || 0) / (task.totalSlots || 1)) * 100);
+  const cat = task.category || "Other";
   return `<div class="task-card" onclick="openTaskModal('${id}')">
     <div class="task-card-top">
       <div class="task-card-title">${esc(task.title)}</div>
@@ -556,6 +652,7 @@ function taskCardHTML(id, task, alreadyDone = false, full = false) {
     <div class="task-card-meta">
       <span class="task-meta-item">📸 ${proofLabel(task.proofType)}</span>
       <span class="task-meta-item">👥 ${task.filledSlots}/${task.totalSlots} slots</span>
+      <span class="cat-badge">${esc(cat)}</span>
       ${alreadyDone ? '<span class="badge badge-approved" style="font-size:0.68rem">✓ Submitted</span>' : ""}
       ${full ? '<span class="badge badge-closed" style="font-size:0.68rem">Full</span>' : ""}
     </div>
@@ -576,14 +673,13 @@ window.openTaskModal = async function(taskId) {
   document.getElementById("modal-description").textContent = task.description;
   document.getElementById("modal-slots-info").textContent = `${task.filledSlots} of ${task.totalSlots} slots filled`;
   document.getElementById("modal-proof-badge").textContent = proofLabel(task.proofType);
+  document.getElementById("modal-cat-badge").textContent = task.category || "Other";
 
-  // Determine sections to show
   const showImg = task.proofType === "image" || task.proofType === "both";
   const showTxt = task.proofType === "text" || task.proofType === "both";
   document.getElementById("proof-image-section").style.display = showImg ? "block" : "none";
   document.getElementById("proof-text-section").style.display = showTxt ? "block" : "none";
 
-  // Check if already submitted
   const subQ = query(collection(db, "submissions"), where("workerId", "==", currentUser.uid), where("taskId", "==", taskId));
   const subSnap = await getDocs(subQ);
 
@@ -631,7 +727,6 @@ window.handleFileSelect = function(e) {
 window.submitProof = async function() {
   const task = selectedTask;
   if (!task) return;
-
   const btn = document.getElementById("btn-submit-proof");
   const spinner = document.getElementById("proof-spinner");
   const alertEl = document.getElementById("proof-alert");
@@ -645,12 +740,9 @@ window.submitProof = async function() {
   if (showTxt && !textProof) { showBanner(alertEl, "Please enter your text proof.", "error"); return; }
 
   btn.disabled = true; spinner.style.display = "inline-block";
-
   try {
     let imageUrl = null;
-
     if (showImg && selectedFile) {
-      // Upload to Cloudinary
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("upload_preset", CLOUDINARY_PRESET);
@@ -660,28 +752,27 @@ window.submitProof = async function() {
       imageUrl = data.secure_url;
     }
 
-    // Write submission document
     await addDoc(collection(db, "submissions"), {
-      taskId: task.id,
-      workerId: currentUser.uid,
-      workerName: currentUserDoc.displayName,
-      taskTitle: task.title,
-      rewardAmount: task.rewardPerSlot,
-      imageUrl: imageUrl || null,
-      textProof: textProof || null,
-      status: "pending",
-      reviewNote: null,
-      submittedAt: serverTimestamp(),
-      reviewedAt: null
+      taskId: task.id, workerId: currentUser.uid,
+      workerName: currentUserDoc.displayName, taskTitle: task.title,
+      rewardAmount: task.rewardPerSlot, imageUrl: imageUrl || null,
+      textProof: textProof || null, status: "pending",
+      reviewNote: null, submittedAt: serverTimestamp(), reviewedAt: null
     });
 
-    // Increment filled slots on task
     await updateDoc(doc(db, "tasks", task.id), { filledSlots: increment(1) });
+
+    // Update local task list so filter reflects new state without re-fetching
+    const localTask = allFetchedTasks.find(t => t.id === task.id);
+    if (localTask) {
+      localTask.alreadyDone = true;
+      localTask.filledSlots = (localTask.filledSlots || 0) + 1;
+    }
 
     closeModal("task-modal");
     showToast("Proof submitted! Awaiting advertiser review.", "success");
+    renderFilteredTasks();
     loadDashboard();
-
   } catch (err) {
     showBanner(alertEl, err.message || "Submission failed. Try again.", "error");
   } finally {
@@ -696,7 +787,7 @@ async function loadSubmissions() {
   const snap = await getDocs(q);
   const tbody = document.getElementById("submissions-tbody");
   if (snap.empty) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">📸</div><div class="empty-state-title">No submissions yet</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📸</div><div class="empty-state-title">No submissions yet</div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = snap.docs.map(d => {
@@ -707,7 +798,7 @@ async function loadSubmissions() {
       <td><span class="badge badge-${s.status}">${s.status}</span></td>
       <td style="color:var(--muted);font-size:0.78rem">${formatDate(s.submittedAt)}</td>
       <td style="color:var(--muted);font-size:0.78rem">${s.reviewNote || "—"}</td>
-      <td>${s.status === 'rejected' ? `<button class="btn btn-warning btn-sm" onclick="openDisputeModal('${d.id}','${esc(s.taskTitle || "")}','${esc(s.reviewNote || "")}')">⚠️ Dispute</button>` : "—"}</td>
+      <td>${s.status === 'rejected' ? `<button class="btn btn-amber btn-sm" onclick="openDisputeModal('${d.id}','${esc(s.taskTitle || "")}','${esc(s.reviewNote || "")}')">⚠️ Dispute</button>` : "—"}</td>
     </tr>`;
   }).join("");
 }
@@ -720,7 +811,6 @@ async function loadWallet() {
   document.getElementById("w-available").textContent = formatNaira(d.walletAvailable || 0);
   document.getElementById("w-pending").textContent = formatNaira(d.walletReserved || 0);
 
-  // Ledger
   const q = query(collection(db, "ledger"), where("userId", "==", uid), orderBy("createdAt", "desc"), limit(50));
   const ledSnap = await getDocs(q);
   const el = document.getElementById("ledger-list");
@@ -745,7 +835,6 @@ async function loadWithdrawPage() {
   const avail = snap.data().walletAvailable || 0;
   document.getElementById("wd-available-display").textContent = formatNaira(avail);
 
-  // Live fee calc
   document.getElementById("wd-amount").oninput = function() {
     const gross = parseFloat(this.value) || 0;
     const fee = gross * 0.1;
@@ -755,7 +844,6 @@ async function loadWithdrawPage() {
     document.getElementById("wd-calc-net").textContent = formatNaira(net);
   };
 
-  // Withdrawal history
   const q = query(collection(db, "withdrawals"), where("workerId", "==", currentUser.uid), orderBy("requestedAt", "desc"));
   const snap2 = await getDocs(q);
   const el = document.getElementById("wd-history");
@@ -794,33 +882,22 @@ window.submitWithdrawal = async function() {
 
   const btn = document.getElementById("btn-withdraw");
   btn.disabled = true; btn.textContent = "Submitting…";
-
   try {
     const fee = amount * 0.1;
     const net = amount - fee;
-
     await addDoc(collection(db, "withdrawals"), {
-      workerId: currentUser.uid,
-      workerName: currentUserDoc.displayName,
+      workerId: currentUser.uid, workerName: currentUserDoc.displayName,
       amount, bankName: bank, accountNumber: accnum, accountName: accname,
-      status: "pending", feeCharged: fee, netPaid: net,
-      requestedAt: serverTimestamp()
+      status: "pending", feeCharged: fee, netPaid: net, requestedAt: serverTimestamp()
     });
-
-    // Lock balance to pending
     await updateDoc(doc(db, "users", currentUser.uid), {
-      walletAvailable: increment(-amount),
-      walletReserved: increment(amount)
+      walletAvailable: increment(-amount), walletReserved: increment(amount)
     });
-
-    // Ledger entry
     await addDoc(collection(db, "ledger"), {
-      userId: currentUser.uid,
-      type: "pending",
-      amount, description: `Withdrawal request — ${bank} ••••${accnum.slice(-4)}`,
+      userId: currentUser.uid, type: "pending", amount,
+      description: `Withdrawal request — ${bank} ••••${accnum.slice(-4)}`,
       relatedId: null, createdAt: serverTimestamp()
     });
-
     showToast("Withdrawal request submitted. Admin will process it shortly.", "success");
     document.getElementById("wd-amount").value = "";
     document.getElementById("wd-bank").value = "";
@@ -848,9 +925,7 @@ window.saveProfile = async function() {
     document.getElementById("sb-name").textContent = name;
     document.getElementById("sb-avatar").textContent = name[0].toUpperCase();
     showBanner(alertEl, "Profile updated successfully.", "success");
-  } catch (e) {
-    showBanner(alertEl, "Failed to update profile.", "error");
-  }
+  } catch (e) { showBanner(alertEl, "Failed to update profile.", "error"); }
 };
 
 // ── ROLE SWITCH ──
@@ -860,9 +935,7 @@ window.switchRole = async function(newRole) {
     await updateDoc(doc(db, "users", currentUser.uid), { role: newRole });
     showToast("Role switched! Redirecting…", "success");
     setTimeout(() => { window.location.href = newRole + ".html"; }, 1000);
-  } catch (e) {
-    showBanner(alertEl, "Failed to switch role. Try again.", "error");
-  }
+  } catch (e) { showBanner(alertEl, "Failed to switch role. Try again.", "error"); }
 };
 
 // ── DISPUTE ──
@@ -879,26 +952,18 @@ window.submitDispute = async function() {
   const alertEl = document.getElementById("dispute-alert");
   const note = document.getElementById("dispute-note").value.trim();
   if (!note) { showBanner(alertEl, "Please explain your dispute reason.", "error"); return; }
-
   try {
     await updateDoc(doc(db, "submissions", disputingSubId), {
-      status: "disputed",
-      disputeNote: note,
-      disputedAt: serverTimestamp()
+      status: "disputed", disputeNote: note, disputedAt: serverTimestamp()
     });
     closeModal("dispute-modal");
     showToast("Dispute submitted. Admin will review and make a final decision.", "success");
     loadSubmissions();
-  } catch (e) {
-    showBanner(alertEl, "Failed to submit dispute. Please try again.", "error");
-  }
+  } catch (e) { showBanner(alertEl, "Failed to submit dispute. Please try again.", "error"); }
 };
 
 // ── SIGN OUT ──
-window.handleSignOut = async function() {
-  await signOut(auth);
-  window.location.href = "auth.html";
-};
+window.handleSignOut = async function() { await signOut(auth); window.location.href = "auth.html"; };
 
 // ── HELPERS ──
 function formatNaira(n) { return "₦" + fmtNum(n); }
@@ -907,27 +972,17 @@ function formatDate(ts) { if (!ts) return "—"; const d = ts.toDate ? ts.toDate
 function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function proofLabel(t) { return t === "image" ? "📸 Screenshot" : t === "text" ? "📝 Text" : "📸+📝 Both"; }
 function statusMsg(s) { return s === "pending" ? "⏳ Awaiting advertiser review" : s === "approved" ? "✅ Approved — payment will be credited" : "❌ Rejected by advertiser"; }
-
 window.openModal = function(id) { document.getElementById(id).classList.add("open"); }
 window.closeModal = function(id) { document.getElementById(id).classList.remove("open"); }
 window.toggleSidebar = function() { document.getElementById("sidebar").classList.toggle("open"); }
 function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); }
-
-function showBanner(el, msg, type) {
-  el.textContent = msg;
-  el.className = `alert-banner ${type} visible`;
-}
-
+function showBanner(el, msg, type) { el.textContent = msg; el.className = `alert-banner ${type} visible`; }
 window.showToast = function(msg, type = "info") {
   const c = document.getElementById("toast-container");
   const t = document.createElement("div");
-  t.className = `toast toast-${type}`;
-  t.textContent = msg;
-  c.appendChild(t);
+  t.className = `toast toast-${type}`; t.textContent = msg; c.appendChild(t);
   setTimeout(() => t.remove(), 4000);
 };
-
-// Close modal on overlay click
 document.querySelectorAll(".modal-overlay").forEach(o => {
   o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
 });
