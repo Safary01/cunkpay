@@ -305,6 +305,24 @@
           </div>
         </div>
       </div>
+      <!-- ── CATEGORY ── -->
+      <div class="field-group">
+        <label class="field-label">Category / Platform</label>
+        <select class="field-select" id="t-category">
+          <option value="Facebook">📘 Facebook</option>
+          <option value="Instagram">📸 Instagram</option>
+          <option value="Twitter/X">🐦 Twitter / X</option>
+          <option value="YouTube">▶️ YouTube</option>
+          <option value="TikTok">🎵 TikTok</option>
+          <option value="Google">🔍 Google</option>
+          <option value="WhatsApp">💬 WhatsApp</option>
+          <option value="Telegram">✈️ Telegram</option>
+          <option value="App Store / Play Store">📱 App Store / Play Store</option>
+          <option value="Website">🌐 Website</option>
+          <option value="Other">📌 Other</option>
+        </select>
+        <div class="field-hint">Helps workers find tasks relevant to them.</div>
+      </div>
       <div class="cost-preview" id="cost-preview" style="display:none">
         <div class="cost-row"><span style="color:var(--muted)">Slots × Reward</span><span id="cp-slots-reward" style="font-family:'Space Grotesk',sans-serif">₦0</span></div>
         <div class="cost-row"><span style="color:var(--white);font-weight:600">Total Reserved</span><span id="cp-total" style="color:var(--amber);font-family:'Space Grotesk',sans-serif;font-size:1rem">₦0</span></div>
@@ -553,6 +571,7 @@ window.openCreateTaskModal = function() {
   document.getElementById("t-reward").value = "";
   document.getElementById("t-slots").value = "";
   document.getElementById("pt-image").checked = true;
+  document.getElementById("t-category").value = "Facebook";
   document.getElementById("cost-preview").style.display = "none";
   openModal("create-task-modal");
 };
@@ -578,6 +597,7 @@ window.createTask = async function() {
   const reward = parseFloat(document.getElementById("t-reward").value);
   const slots = parseInt(document.getElementById("t-slots").value);
   const proofType = document.querySelector('input[name="t-proof"]:checked').value;
+  const category = document.getElementById("t-category").value;
 
   if (!title) { showBanner(alertEl, "Please enter a task title.", "error"); return; }
   if (!desc) { showBanner(alertEl, "Please enter a task description.", "error"); return; }
@@ -603,7 +623,9 @@ window.createTask = async function() {
       title, description: desc,
       rewardPerSlot: reward,
       totalSlots: slots, filledSlots: 0,
-      proofType, status: "active",
+      proofType,
+      category,
+      status: "active",
       totalBudget: totalCost,
       createdAt: serverTimestamp()
     });
@@ -958,3 +980,4 @@ document.querySelectorAll(".modal-overlay").forEach(o => { o.addEventListener("c
 </script>
 </body>
 </html>
+Done.
