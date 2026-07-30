@@ -269,8 +269,8 @@
               <div class="alert-banner" id="wd-alert"></div>
               <div class="field-group">
                 <label class="field-label">Amount to Withdraw (₦)</label>
-                <input class="field-input" type="number" id="wd-amount" placeholder="e.g. 5000" min="500">
-                <div class="field-hint">Minimum: ₦500. Available: <span id="wd-available-display" style="color:var(--green);font-weight:600">₦0</span></div>
+                <input class="field-input" type="number" id="wd-amount" placeholder="e.g. 5000" min="5000">
+                <div class="field-hint">Minimum: ₦5000. Available: <span id="wd-available-display" style="color:var(--green);font-weight:600">₦0</span></div>
               </div>
               <div class="field-group">
                 <label class="field-label">Bank Name</label>
@@ -460,8 +460,8 @@ const firebaseConfig = {
   appId: "1:789585022129:web:935f8bef2232a43503e690"
 };
 
-const CLOUDINARY_CLOUD = "your_cloud_name";
-const CLOUDINARY_PRESET = "your_upload_preset";
+const CLOUDINARY_CLOUD = "dfgitq25q";
+const CLOUDINARY_PRESET = "131753312575561";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -871,7 +871,7 @@ window.submitWithdrawal = async function() {
   const alertEl = document.getElementById("wd-alert");
   alertEl.className = "alert-banner";
 
-  if (!amount || amount < 500) { showBanner(alertEl, "Minimum withdrawal is ₦500.", "error"); return; }
+  if (!amount || amount < 5000) { showBanner(alertEl, "Minimum withdrawal is ₦5000.", "error"); return; }
   if (!bank) { showBanner(alertEl, "Please enter your bank name.", "error"); return; }
   if (!accnum || accnum.length < 10) { showBanner(alertEl, "Please enter a valid 10-digit account number.", "error"); return; }
   if (!accname) { showBanner(alertEl, "Please enter the account name.", "error"); return; }
