@@ -21,6 +21,11 @@
 <meta name="twitter:title" content="About CunkPay — Nigeria's Micro-Task Marketplace">
 <meta name="twitter:description" content="CunkPay was built to help people earn money from free time and help businesses grow with real human engagement.">
 <meta name="twitter:image" content="https://cunkpay.com.ng/cunkpay.png">
+  <!-- Font Awesome Icons -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -122,6 +127,50 @@ footer { background: var(--navy); border-top: 1px solid var(--border); padding: 
   footer { flex-direction: column; text-align: center; }
 }
 @media (max-width: 480px) { .about-stats { grid-template-columns: 1fr 1fr; } }
+
+.cunkpay-socials {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cunkpay-socials a {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+  background: #0b1220;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+
+  text-decoration: none;
+  font-size: 18px;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.cunkpay-socials a:hover {
+  transform: translateY(-3px);
+  background: #064e3b;
+  border-color: #047857;
+}
+
+.cunkpay-socials a:active {
+  transform: translateY(-1px);
+}
+
+/* Keyboard accessibility */
+.cunkpay-socials a:focus-visible {
+  outline: 2px solid #f5b942;
+  outline-offset: 3px;
+        }
 </style>
 </head>
 
@@ -250,6 +299,32 @@ footer { background: var(--navy); border-top: 1px solid var(--border); padding: 
 </div>
 
 <footer>
+  <div class="cunkpay-socials">
+  <a href="https://youtube.com/@cunkpayng" target="_blank" rel="noopener noreferrer" aria-label="CunkPay on YouTube">
+    <i class="fa-brands fa-youtube"></i>
+  </a>
+
+  <a href="https://www.facebook.com/profile.php?id=61594360289585" target="_blank" rel="noopener noreferrer" aria-label="CunkPay on Facebook">
+    <i class="fa-brands fa-facebook-f"></i>
+  </a>
+
+  <a href="https://tiktok.com/@cunkpayng" target="_blank" rel="noopener noreferrer" aria-label="CunkPay on TikTok">
+    <i class="fa-brands fa-tiktok"></i>
+  </a>
+
+  <a href="https://x.com/cunkpayng" target="_blank" rel="noopener noreferrer" aria-label="CunkPay on X">
+    <i class="fa-brands fa-x-twitter"></i>
+  </a>
+
+  <a href="https://instagram.com/cunkpayng" target="_blank" rel="noopener noreferrer" aria-label="CunkPay on Instagram">
+    <i class="fa-brands fa-instagram"></i>
+  </a>
+
+  <a href="https://wa.me/2348032570778" target="_blank" rel="noopener noreferrer" aria-label="Contact CunkPay on WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+  </a>
+  </div>
+  
   <div class="footer-copy">© 2026 CunkPay · Built by Afraah Tech Hub</div>
   <div class="footer-links-row">
     <a href="index.html">Home</a>
