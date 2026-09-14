@@ -592,13 +592,15 @@ async function loadTasks() {
   const q = query(collection(db, "tasks"), where("status", "==", "active"), orderBy("createdAt", "desc"));
   const snap = await getDocs(q);
 
-  // Store full list with submission state
-  allFetchedTasks = snap.docs.map(d => ({
-    id: d.id,
-    ...d.data(),
-    alreadyDone: submittedTaskIds.has(d.id),
-    full: d.data().filledSlots >= d.data().totalSlots
-  }));
+  // Store only tasks that still have open slots
+  allFetchedTasks = snap.docs
+    .map(d => ({
+      id: d.id,
+      ...d.data(),
+      alreadyDone: submittedTaskIds.has(d.id),
+      full: d.data().filledSlots >= d.data().totalSlots
+    }))
+    .filter(t => !t.full);
 
   renderFilteredTasks();
 }
