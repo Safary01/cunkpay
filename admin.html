@@ -577,6 +577,26 @@ window.reviewDeposit = async function(decision) {
         userId: reviewingDepAdvertiserId, type: "credit", amount: reviewingDepNet,
         description: "Deposit approved by admin", relatedId: reviewingDepId, createdAt: serverTimestamp()
       });
+
+      // ── REFERRAL REWARD: check if this advertiser was referred ──
+      const advSnap = await getDoc(doc(db, "users", reviewingDepAdvertiserId));
+      if (advSnap.exists()) {
+        const advData = advSnap.data();
+        if (advData.referredBy && !advData.referralRewardPaid) {
+          await updateDoc(doc(db, "users", advData.referredBy), {
+            walletAvailable: increment(200),
+            totalEarned: increment(200),
+            totalReferrals: increment(1)
+          });
+          await addDoc(collection(db, "ledger"), {
+            userId: advData.referredBy, type: "credit", amount: 200,
+            description: `Referral reward — invited advertiser made first deposit`,
+            relatedId: reviewingDepAdvertiserId, createdAt: serverTimestamp()
+          });
+          await updateDoc(doc(db, "users", reviewingDepAdvertiserId), { referralRewardPaid: true });
+        }
+      }
+
       await logActivity("💳", `Approved deposit of ₦${fmtNum(reviewingDepAmount)}`, "deposit", reviewingDepId);
     } else {
       await logActivity("❌", `Rejected deposit of ₦${fmtNum(reviewingDepAmount)} — ${note}`, "deposit", reviewingDepId);
@@ -668,6 +688,26 @@ window.reviewWithdrawal = async function(decision) {
         userId: reviewingWdWorkerId, type: "debit", amount: reviewingWdAmount,
         description: "Withdrawal paid out by admin", relatedId: reviewingWdId, createdAt: serverTimestamp()
       });
+
+      // ── REFERRAL REWARD: check if this worker was referred ──
+      const wkSnap = await getDoc(doc(db, "users", reviewingWdWorkerId));
+      if (wkSnap.exists()) {
+        const wkData = wkSnap.data();
+        if (wkData.referredBy && !wkData.referralRewardPaid) {
+          await updateDoc(doc(db, "users", wkData.referredBy), {
+            walletAvailable: increment(200),
+            totalEarned: increment(200),
+            totalReferrals: increment(1)
+          });
+          await addDoc(collection(db, "ledger"), {
+            userId: wkData.referredBy, type: "credit", amount: 200,
+            description: `Referral reward — invited worker made first withdrawal`,
+            relatedId: reviewingWdWorkerId, createdAt: serverTimestamp()
+          });
+          await updateDoc(doc(db, "users", reviewingWdWorkerId), { referralRewardPaid: true });
+        }
+      }
+
       await logActivity("✅", `Paid out withdrawal of ₦${fmtNum(reviewingWdNet)} (net)`, "withdrawal", reviewingWdId);
     } else {
       // Refund worker — move reserved amount back to available.
