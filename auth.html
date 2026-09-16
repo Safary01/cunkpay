@@ -413,6 +413,12 @@
           <div class="field-error" id="reg-confirm-err">Passwords do not match.</div>
         </div>
 
+        <div class="field-group">
+          <label class="field-label">Referral Code <span style="color:var(--muted);font-weight:400">(Optional)</span></label>
+          <input class="field-input" type="text" id="reg-referral" placeholder="Enter referral code if you have one" maxlength="8" style="text-transform:uppercase">
+          <div class="field-hint">If a friend invited you, enter their code here.</div>
+        </div>
+
         <button class="btn-submit" id="btn-register" onclick="handleRegister()">
           <div class="spinner"></div>
           <span class="btn-text">Create Account</span>
@@ -451,6 +457,10 @@
     getDoc,
     setDoc,
     updateDoc,
+    getDocs,
+    collection,
+    query,
+    where,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -471,6 +481,13 @@
   // ── HEAL USER DOC ──
   // Runs on every login. Ensures all required fields exist on the user document.
   // Adds any missing fields without overwriting existing ones.
+  // ── GENERATE UNIQUE REFERRAL CODE ──
+  function generateReferralCode(uid) {
+    // 6-char code from UID characters — uppercase alphanumeric
+    const chars = uid.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    return chars.substring(0, 6).padEnd(6, "X");
+  }
+
   async function healUserDoc(uid) {
     const ref = doc(db, "users", uid);
     const snap = await getDoc(ref);
@@ -486,6 +503,10 @@
     if (data.status === undefined) updates.status = "active";
     if (data.role === undefined) updates.role = "worker";
     if (data.phone === undefined) updates.phone = "";
+    if (data.referralCode === undefined) updates.referralCode = generateReferralCode(uid);
+    if (data.referredBy === undefined) updates.referredBy = null;
+    if (data.referralRewardPaid === undefined) updates.referralRewardPaid = false;
+    if (data.totalReferrals === undefined) updates.totalReferrals = 0;
 
     if (Object.keys(updates).length > 0) {
       await updateDoc(ref, updates);
@@ -565,6 +586,17 @@
       // Update display name in Auth
       await updateProfile(cred.user, { displayName: name });
 
+      // Look up referrer by referral code
+      const referralInput = document.getElementById("reg-referral").value.trim().toUpperCase();
+      let referredByUid = null;
+      if (referralInput) {
+        const refQ = query(collection(db, "users"), where("referralCode", "==", referralInput));
+        const refSnap = await getDocs(refQ);
+        if (!refSnap.empty && refSnap.docs[0].id !== uid) {
+          referredByUid = refSnap.docs[0].id;
+        }
+      }
+
       // Create Firestore user document
       await setDoc(doc(db, "users", uid), {
         uid,
@@ -577,6 +609,10 @@
         totalEarned: 0,
         totalDeposited: 0,
         status: "active",
+        referralCode: generateReferralCode(uid),
+        referredBy: referredByUid,
+        referralRewardPaid: false,
+        totalReferrals: 0,
         createdAt: serverTimestamp()
       });
 
@@ -689,6 +725,21 @@
       btn.textContent = "👁";
     }
   };
+
+  // ── AUTO-FILL REFERRAL CODE FROM URL ──
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      // Switch to register tab and fill the code
+      document.getElementById("panel-login").classList.remove("active");
+      document.getElementById("panel-register").classList.add("active");
+      document.getElementById("tab-login").classList.remove("active");
+      document.getElementById("tab-register").classList.add("active");
+      const refInput = document.getElementById("reg-referral");
+      if (refInput) refInput.value = ref.toUpperCase();
+    }
+  })();
 
   window.switchTab = function(tab) {
     clearErrors();
