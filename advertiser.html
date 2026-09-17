@@ -192,7 +192,7 @@
             <div class="section-card-header"><div class="section-card-title">💳 Request Deposit</div></div>
             <div class="section-card-body">
               <div class="alert-banner info visible" style="margin-bottom:16px">
-                💡 Transfer your deposit to our bank account, then submit this form with your payment proof. Admin will verify and credit your wallet (minus <strong>10% platform fee</strong>).
+                💡 Transfer your deposit to our bank account, then submit this form with your payment proof. Admin will verify and credit your wallet (minus <strong>5% platform fee</strong>).
                 <span style="color: #b91c1c; background-color: #fff1f2; border: 1px solid #dc2626; border-left: 4px solid #dc2626; padding: 8px 12px; border-radius: 6px; font-weight: 700; display: inline-block;">
   ⚠️ Make sure you transfer the <strong>exact amount you selected</strong>. Do not transfer a different amount.
                 </span>
@@ -206,8 +206,8 @@
               <div class="alert-banner" id="dep-alert"></div>
               <div class="field-group">
                 <label class="field-label">Amount Deposited (₦)</label>
-                <input class="field-input" type="number" id="dep-amount" placeholder="e.g. 20000" min="1000">
-                <div class="field-hint" id="dep-calc-hint">After 10% fee: <span style="color:var(--green);font-weight:600" id="dep-net-display">₦0.00</span> will be credited to your wallet.</div>
+                <input class="field-input" type="number" id="dep-amount" placeholder="e.g. 20000" min="500">
+                <div class="field-hint" id="dep-calc-hint">After 5% fee: <span style="color:var(--green);font-weight:600" id="dep-net-display">₦0.00</span> will be credited to your wallet.</div>
               </div>
               <div class="field-group">
                 <label class="field-label">Upload Payment Proof</label>
@@ -905,7 +905,7 @@ async function loadDepositPage() {
 
   document.getElementById("dep-amount").oninput = function() {
     const gross = parseFloat(this.value) || 0;
-    const net = gross * 0.9;
+    const net = gross * 0.95;
     document.getElementById("dep-net-display").textContent = formatNaira(net);
   };
 }
@@ -926,7 +926,7 @@ window.submitDeposit = async function() {
   const alertEl = document.getElementById("dep-alert");
   alertEl.className = "alert-banner";
 
-  if (!amount || amount < 1000) { showBanner(alertEl, "Minimum deposit is ₦1,000.", "error"); return; }
+  if (!amount || amount < 500) { showBanner(alertEl, "Minimum deposit is ₦500.", "error"); return; }
   if (!depFile) { showBanner(alertEl, "Please upload your payment proof.", "error"); return; }
 
   const btn = document.getElementById("btn-deposit");
@@ -940,8 +940,8 @@ window.submitDeposit = async function() {
     const data = await res.json();
     if (!data.secure_url) throw new Error("Image upload failed.");
 
-    const fee = amount * 0.1;
-    const net = amount * 0.9;
+    const fee = amount * 0.05;
+    const net = amount * 0.95;
 
     await addDoc(collection(db, "deposits"), {
       advertiserId: currentUser.uid,
