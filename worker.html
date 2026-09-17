@@ -269,8 +269,8 @@
               <div class="alert-banner" id="wd-alert"></div>
               <div class="field-group">
                 <label class="field-label">Amount to Withdraw (₦)</label>
-                <input class="field-input" type="number" id="wd-amount" placeholder="e.g. 5000" min="5000">
-                <div class="field-hint">Minimum: ₦5000. Available: <span id="wd-available-display" style="color:var(--green);font-weight:600">₦0</span></div>
+                <input class="field-input" type="number" id="wd-amount" placeholder="e.g. 2000" min="2000">
+                <div class="field-hint">Minimum: ₦2000. Available: <span id="wd-available-display" style="color:var(--green);font-weight:600">₦0</span></div>
               </div>
               <div class="field-group">
                 <label class="field-label">Bank Name</label>
@@ -908,7 +908,7 @@ window.submitWithdrawal = async function() {
   const alertEl = document.getElementById("wd-alert");
   alertEl.className = "alert-banner";
 
-  if (!amount || amount < 5000) { showBanner(alertEl, "Minimum withdrawal is ₦5000.", "error"); return; }
+  if (!amount || amount < 2000) { showBanner(alertEl, "Minimum withdrawal is ₦2000.", "error"); return; }
   if (!bank) { showBanner(alertEl, "Please enter your bank name.", "error"); return; }
   if (!accnum || accnum.length < 10) { showBanner(alertEl, "Please enter a valid 10-digit account number.", "error"); return; }
   if (!accname) { showBanner(alertEl, "Please enter the account name.", "error"); return; }
