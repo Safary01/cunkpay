@@ -337,6 +337,23 @@
           <span class="btn-text">Sign In</span>
         </button>
 
+        <div style="text-align:right;margin-top:10px;margin-bottom:4px">
+          <a onclick="showForgotPassword()" style="font-size:0.8rem;color:var(--cobalt-light);cursor:pointer;text-decoration:none">Forgot Password?</a>
+        </div>
+
+        <div class="auth-alert" id="forgot-alert"></div>
+
+        <div id="forgot-panel" style="display:none;margin-bottom:12px">
+          <div class="field-group">
+            <label class="field-label">Enter your email address</label>
+            <input class="field-input" type="email" id="forgot-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <button class="btn-submit" id="btn-forgot" onclick="handleForgotPassword()" style="margin-bottom:0">
+            <div class="spinner" id="forgot-spinner" style="display:none"></div>
+            <span class="btn-text">Send Reset Link</span>
+          </button>
+        </div>
+
         <div class="form-switch">
           Don't have an account? <a onclick="switchTab('register')">Create one</a>
         </div>
@@ -447,6 +464,7 @@
     getAuth,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
+    sendPasswordResetEmail,
     updateProfile,
     onAuthStateChanged,
     signOut
@@ -741,12 +759,55 @@
     }
   })();
 
+  window.showForgotPassword = function() {
+    const panel = document.getElementById("forgot-panel");
+    const isVisible = panel.style.display === "block";
+    panel.style.display = isVisible ? "none" : "block";
+    document.getElementById("forgot-alert").className = "auth-alert";
+    document.getElementById("forgot-email").value = "";
+  };
+
+  window.handleForgotPassword = async function() {
+    const email = document.getElementById("forgot-email").value.trim();
+    const alertEl = document.getElementById("forgot-alert");
+    alertEl.className = "auth-alert";
+
+    if (!email || !email.includes("@")) {
+      alertEl.textContent = "Please enter a valid email address.";
+      alertEl.className = "auth-alert error visible";
+      return;
+    }
+
+    const btn = document.getElementById("btn-forgot");
+    const spinner = document.getElementById("forgot-spinner");
+    btn.disabled = true; spinner.style.display = "inline-block";
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      alertEl.textContent = "Password reset link sent. Check your email inbox.";
+      alertEl.className = "auth-alert success visible";
+      document.getElementById("forgot-panel").style.display = "none";
+    } catch (err) {
+      const msgs = {
+        "auth/user-not-found": "No account found with this email address.",
+        "auth/invalid-email": "That email address doesn't look right.",
+        "auth/too-many-requests": "Too many attempts. Please wait a moment and try again."
+      };
+      alertEl.textContent = msgs[err.code] || "Failed to send reset link. Please try again.";
+      alertEl.className = "auth-alert error visible";
+    } finally {
+      btn.disabled = false; spinner.style.display = "none";
+    }
+  };
+
   window.switchTab = function(tab) {
     clearErrors();
     document.getElementById("panel-login").classList.toggle("active", tab === "login");
     document.getElementById("panel-register").classList.toggle("active", tab === "register");
     document.getElementById("tab-login").classList.toggle("active", tab === "login");
     document.getElementById("tab-register").classList.toggle("active", tab === "register");
+    document.getElementById("forgot-panel").style.display = "none";
+    document.getElementById("forgot-alert").className = "auth-alert";
   };
 
 </script>
