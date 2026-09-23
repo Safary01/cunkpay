@@ -718,8 +718,8 @@ async function loadSubmissions(filter) {
   taskSnap.docs.forEach(d => { taskMap[d.id] = d.data().title; });
 
   let subs = [];
-  for (const tid of Object.keys(taskMap).slice(0, 10)) {
-    const q = query(collection(db, "submissions"), where("taskId", "==", tid), where("status", "==", filter), orderBy("submittedAt", "desc"), limit(20));
+  for (const tid of Object.keys(taskMap)) {
+    const q = query(collection(db, "submissions"), where("taskId", "==", tid), where("status", "==", filter), orderBy("submittedAt", "desc"));
     const s = await getDocs(q);
     s.docs.forEach(d => subs.push({ id: d.id, ...d.data(), taskTitle: taskMap[tid] }));
   }
