@@ -594,11 +594,33 @@ window.reviewDeposit = async function(decision) {
             relatedId: reviewingDepAdvertiserId, createdAt: serverTimestamp()
           });
           await updateDoc(doc(db, "users", reviewingDepAdvertiserId), { referralRewardPaid: true });
+          // Notify referrer — referral reward credited
+          await addDoc(collection(db, "notifications"), {
+            userId: advData.referredBy, icon: "🎉",
+            title: "Referral Reward!",
+            desc: `You earned ₦200 — someone you invited made their first deposit.`,
+            read: false, createdAt: serverTimestamp()
+          });
         }
       }
 
+      // Notify advertiser — deposit approved
+      await addDoc(collection(db, "notifications"), {
+        userId: reviewingDepAdvertiserId, icon: "💰",
+        title: "Deposit Approved",
+        desc: `Your deposit of ₦${fmtNum(reviewingDepAmount)} has been approved. ₦${fmtNum(reviewingDepNet)} credited to your wallet.`,
+        read: false, createdAt: serverTimestamp()
+      });
+
       await logActivity("💳", `Approved deposit of ₦${fmtNum(reviewingDepAmount)}`, "deposit", reviewingDepId);
     } else {
+      // Notify advertiser — deposit rejected
+      await addDoc(collection(db, "notifications"), {
+        userId: reviewingDepAdvertiserId, icon: "❌",
+        title: "Deposit Rejected",
+        desc: `Your deposit request was rejected. Reason: ${note}. Please re-submit with a valid receipt.`,
+        read: false, createdAt: serverTimestamp()
+      });
       await logActivity("❌", `Rejected deposit of ₦${fmtNum(reviewingDepAmount)} — ${note}`, "deposit", reviewingDepId);
     }
 
@@ -705,8 +727,23 @@ window.reviewWithdrawal = async function(decision) {
             relatedId: reviewingWdWorkerId, createdAt: serverTimestamp()
           });
           await updateDoc(doc(db, "users", reviewingWdWorkerId), { referralRewardPaid: true });
+          // Notify referrer — referral reward credited
+          await addDoc(collection(db, "notifications"), {
+            userId: wkData.referredBy, icon: "🎉",
+            title: "Referral Reward!",
+            desc: `You earned ₦200 — someone you invited made their first withdrawal.`,
+            read: false, createdAt: serverTimestamp()
+          });
         }
       }
+
+      // Notify worker — withdrawal paid
+      await addDoc(collection(db, "notifications"), {
+        userId: reviewingWdWorkerId, icon: "🏦",
+        title: "Withdrawal Paid",
+        desc: `Your withdrawal of ₦${fmtNum(reviewingWdNet)} has been sent to your bank account.`,
+        read: false, createdAt: serverTimestamp()
+      });
 
       await logActivity("✅", `Paid out withdrawal of ₦${fmtNum(reviewingWdNet)} (net)`, "withdrawal", reviewingWdId);
     } else {
@@ -718,6 +755,13 @@ window.reviewWithdrawal = async function(decision) {
       await addDoc(collection(db, "ledger"), {
         userId: reviewingWdWorkerId, type: "credit", amount: reviewingWdAmount,
         description: `Withdrawal rejected — refunded: ${note}`, relatedId: reviewingWdId, createdAt: serverTimestamp()
+      });
+      // Notify worker — withdrawal rejected
+      await addDoc(collection(db, "notifications"), {
+        userId: reviewingWdWorkerId, icon: "❌",
+        title: "Withdrawal Rejected",
+        desc: `Your withdrawal request was rejected. Reason: ${note}. Your balance has been refunded.`,
+        read: false, createdAt: serverTimestamp()
       });
       await logActivity("❌", `Rejected withdrawal of ₦${fmtNum(reviewingWdAmount)} — ${note}`, "withdrawal", reviewingWdId);
     }
