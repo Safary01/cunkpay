@@ -709,15 +709,19 @@ window.createTask = async function() {
       createdAt: serverTimestamp()
     });
 
-    // Broadcast new task notification — stored as a single doc workers query
-    await addDoc(collection(db, "broadcasts"), {
-      type: "new_task",
-      icon: "📋",
-      title: "New Task Available",
-      desc: `${esc(title)} — ₦${fmtNum(reward)} per slot · ${category}`,
-      taskId: taskRef.id,
-      createdAt: serverTimestamp()
-    });
+    // Broadcast new task notification — non-blocking, never fails task creation
+    try {
+      await addDoc(collection(db, "broadcasts"), {
+        type: "new_task",
+        icon: "📋",
+        title: "New Task Available",
+        desc: `${esc(title)} — ₦${fmtNum(reward)} per slot · ${category}`,
+        taskId: taskRef.id,
+        createdAt: serverTimestamp()
+      });
+    } catch (broadcastErr) {
+      console.log("Broadcast skipped:", broadcastErr.message);
+    }
 
     closeModal("create-task-modal");
     showToast("Task created! Budget reserved from your wallet.", "success");
