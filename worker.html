@@ -441,13 +441,8 @@
         <div class="alert-banner" id="proof-alert"></div>
         <div id="proof-image-section">
           <div class="field-group">
-            <label class="field-label">Proof Screenshot</label>
-            <div class="proof-upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
-              <div class="upload-icon">📷</div>
-              <div class="upload-label">Click to upload screenshot</div>
-              <div class="upload-hint">JPG, PNG · Max 5MB</div>
-            </div>
-            <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)">
+            <label class="field-label" id="screenshot-label">Proof Screenshot</label>
+            <div id="upload-slots"></div>
           </div>
         </div>
         <div id="proof-text-section">
@@ -527,7 +522,7 @@ const messaging = getMessaging(app);
 let currentUser = null;
 let currentUserDoc = null;
 let selectedTask = null;
-let selectedFile = null;
+let selectedFiles = {}; // { slotIndex: File }
 let disputingSubId = null;
 
 // All fetched tasks stored here — filtering is client-side
@@ -768,23 +763,46 @@ window.openTaskModal = async function(taskId) {
     document.getElementById("modal-proof-form").style.display = "block";
     document.getElementById("modal-footer").style.display = "flex";
     document.getElementById("proof-text").value = "";
-    document.getElementById("upload-area").className = "proof-upload-area";
-    document.getElementById("upload-area").innerHTML = '<div class="upload-icon">📷</div><div class="upload-label">Click to upload screenshot</div><div class="upload-hint">JPG, PNG · Max 5MB</div>';
-    selectedFile = null;
+    selectedFiles = {};
+    buildUploadSlots(task.screenshotCount || 1);
   }
 
   document.getElementById("proof-alert").className = "alert-banner";
   openModal("task-modal");
 };
 
-window.handleFileSelect = function(e) {
+// ── BUILD DYNAMIC UPLOAD SLOTS ──
+window.buildUploadSlots = function(count) {
+  const container = document.getElementById("upload-slots");
+  const label = document.getElementById("screenshot-label");
+  label.textContent = count === 1 ? "Proof Screenshot" : `Proof Screenshots (${count} required)`;
+  container.innerHTML = "";
+  for (let i = 0; i < count; i++) {
+    const slotId = `upload-slot-${i}`;
+    const inputId = `file-input-${i}`;
+    container.innerHTML += `
+      <div style="margin-bottom:10px">
+        ${count > 1 ? `<div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;font-weight:600">Screenshot ${i + 1}</div>` : ""}
+        <div class="proof-upload-area" id="${slotId}" onclick="document.getElementById('${inputId}').click()">
+          <div class="upload-icon">📷</div>
+          <div class="upload-label">Click to upload screenshot ${count > 1 ? (i + 1) : ""}</div>
+          <div class="upload-hint">JPG, PNG · Max 5MB</div>
+        </div>
+        <input type="file" id="${inputId}" accept="image/*" style="display:none" onchange="handleFileSelect(event, ${i})">
+      </div>`;
+  }
+};
+
+window.handleFileSelect = function(e, slotIndex = 0) {
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 5 * 1024 * 1024) { showToast("File must be under 5MB.", "error"); return; }
-  selectedFile = file;
-  const area = document.getElementById("upload-area");
-  area.className = "proof-upload-area has-file";
-  area.innerHTML = `<div class="upload-icon">✅</div><div class="upload-label">${esc(file.name)}</div><div class="upload-hint">${(file.size/1024).toFixed(0)} KB · Click to change</div>`;
+  selectedFiles[slotIndex] = file;
+  const area = document.getElementById(`upload-slot-${slotIndex}`);
+  if (area) {
+    area.className = "proof-upload-area has-file";
+    area.innerHTML = `<div class="upload-icon">✅</div><div class="upload-label">${esc(file.name)}</div><div class="upload-hint">${(file.size/1024).toFixed(0)} KB · Click to change</div>`;
+  }
 };
 
 window.submitProof = async function() {
@@ -799,26 +817,43 @@ window.submitProof = async function() {
   const showTxt = task.proofType === "text" || task.proofType === "both";
   const textProof = document.getElementById("proof-text").value.trim();
 
-  if (showImg && !selectedFile) { showBanner(alertEl, "Please upload a screenshot as proof.", "error"); return; }
+  const scCount = task.screenshotCount || 1;
+  if (showImg) {
+    const missingSlots = [];
+    for (let i = 0; i < scCount; i++) {
+      if (!selectedFiles[i]) missingSlots.push(i + 1);
+    }
+    if (missingSlots.length > 0) {
+      showBanner(alertEl, `Please upload screenshot${missingSlots.length > 1 ? "s" : ""} ${missingSlots.join(", ")}.`, "error");
+      return;
+    }
+  }
   if (showTxt && !textProof) { showBanner(alertEl, "Please enter your text proof.", "error"); return; }
 
   btn.disabled = true; spinner.style.display = "inline-block";
   try {
     let imageUrl = null;
-    if (showImg && selectedFile) {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("upload_preset", CLOUDINARY_PRESET);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: "POST", body: formData });
-      const data = await res.json();
-      if (!data.secure_url) throw new Error("Image upload failed.");
-      imageUrl = data.secure_url;
+    let imageUrls = [];
+    if (showImg) {
+      const scCount = task.screenshotCount || 1;
+      for (let i = 0; i < scCount; i++) {
+        const file = selectedFiles[i];
+        if (!file) continue;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", CLOUDINARY_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: "POST", body: formData });
+        const data = await res.json();
+        if (!data.secure_url) throw new Error(`Screenshot ${i + 1} upload failed.`);
+        imageUrls.push(data.secure_url);
+      }
+      imageUrl = imageUrls[0] || null; // keep first as primary for backward compat
     }
 
     await addDoc(collection(db, "submissions"), {
       taskId: task.id, workerId: currentUser.uid,
       workerName: currentUserDoc.displayName, taskTitle: task.title,
-      rewardAmount: task.rewardPerSlot, imageUrl: imageUrl || null,
+      rewardAmount: task.rewardPerSlot, imageUrl: imageUrl || null, imageUrls: imageUrls.length ? imageUrls : null,
       textProof: textProof || null, status: "pending",
       reviewNote: null, submittedAt: serverTimestamp(), reviewedAt: null
     });
