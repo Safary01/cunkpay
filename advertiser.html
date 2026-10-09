@@ -348,18 +348,37 @@
         <label class="field-label" style="margin-bottom:8px">Proof Type Required</label>
         <div class="proof-select-row">
           <div>
-            <input class="proof-opt" type="radio" name="t-proof" id="pt-image" value="image" checked>
+            <input class="proof-opt" type="radio" name="t-proof" id="pt-image" value="image" checked onchange="toggleScCount()">
             <label class="proof-opt-label" for="pt-image"><span class="proof-opt-icon">📸</span>Screenshot</label>
           </div>
           <div>
-            <input class="proof-opt" type="radio" name="t-proof" id="pt-text" value="text">
+            <input class="proof-opt" type="radio" name="t-proof" id="pt-text" value="text" onchange="toggleScCount()">
             <label class="proof-opt-label" for="pt-text"><span class="proof-opt-icon">📝</span>Text Only</label>
           </div>
           <div>
-            <input class="proof-opt" type="radio" name="t-proof" id="pt-both" value="both">
+            <input class="proof-opt" type="radio" name="t-proof" id="pt-both" value="both" onchange="toggleScCount()">
             <label class="proof-opt-label" for="pt-both"><span class="proof-opt-icon">📸+📝</span>Both</label>
           </div>
         </div>
+      </div>
+      <!-- ── SCREENSHOT COUNT ── -->
+      <div class="field-group" id="screenshot-count-group" style="display:block">
+        <label class="field-label">Number of Screenshots Required</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div>
+            <input class="proof-opt" type="radio" name="t-sc-count" id="sc-1" value="1" checked>
+            <label class="proof-opt-label" for="sc-1"><span class="proof-opt-icon">1️⃣</span>1 Screenshot</label>
+          </div>
+          <div>
+            <input class="proof-opt" type="radio" name="t-sc-count" id="sc-2" value="2">
+            <label class="proof-opt-label" for="sc-2"><span class="proof-opt-icon">2️⃣</span>2 Screenshots</label>
+          </div>
+          <div>
+            <input class="proof-opt" type="radio" name="t-sc-count" id="sc-3" value="3">
+            <label class="proof-opt-label" for="sc-3"><span class="proof-opt-icon">3️⃣</span>3 Screenshots</label>
+          </div>
+        </div>
+        <div class="field-hint">Workers must upload this many screenshots as proof.</div>
       </div>
       <!-- ── CATEGORY ── -->
       <div class="field-group">
@@ -406,6 +425,7 @@
       <div style="margin-bottom:8px;font-size:0.82rem;color:var(--muted)">Worker</div>
       <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;margin-bottom:4px" id="rv-worker-name"></div>
       <div style="font-size:0.78rem;color:var(--muted);margin-bottom:16px" id="rv-task-name"></div>
+      <div id="rv-image-container" style="display:none"></div>
       <img id="rv-image" class="proof-img" src="" alt="Proof screenshot" style="display:none" onclick="window.open(this.src,'_blank')">
       <div id="rv-text-proof" style="display:none;background:var(--midnight);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:0.85rem;line-height:1.7;margin-bottom:12px;word-break:break-all"></div>
       <div class="alert-banner" id="rv-alert"></div>
@@ -634,9 +654,18 @@ window.openCreateTaskModal = function() {
   document.getElementById("t-reward").value = "";
   document.getElementById("t-slots").value = "";
   document.getElementById("pt-image").checked = true;
+  document.getElementById("sc-1").checked = true;
   document.getElementById("t-category").value = "Facebook";
   document.getElementById("cost-preview").style.display = "none";
+  document.getElementById("screenshot-count-group").style.display = "block";
   openModal("create-task-modal");
+};
+
+window.toggleScCount = function() {
+  const proofType = document.querySelector('input[name="t-proof"]:checked').value;
+  const showCount = proofType === "image" || proofType === "both";
+  document.getElementById("screenshot-count-group").style.display = showCount ? "block" : "none";
+  if (!showCount) document.getElementById("sc-1").checked = true;
 };
 
 window.calcTaskCost = function() {
@@ -661,6 +690,9 @@ window.createTask = async function() {
   const slots = parseInt(document.getElementById("t-slots").value);
   const proofType = document.querySelector('input[name="t-proof"]:checked').value;
   const category = document.getElementById("t-category").value;
+  const screenshotCount = (proofType === "image" || proofType === "both")
+    ? parseInt(document.querySelector('input[name="t-sc-count"]:checked').value) || 1
+    : 0;
 
   if (!title) { showBanner(alertEl, "Please enter a task title.", "error"); return; }
   if (!desc) { showBanner(alertEl, "Please enter a task description.", "error"); return; }
@@ -687,6 +719,7 @@ window.createTask = async function() {
       rewardPerSlot: reward,
       totalSlots: slots, filledSlots: 0,
       proofType,
+      screenshotCount,
       category,
       status: "active",
       totalBudget: totalCost,
@@ -810,8 +843,23 @@ window.openReviewModal = async function(subId) {
 
   const imgEl = document.getElementById("rv-image");
   const txtEl = document.getElementById("rv-text-proof");
+  const imgContainer = document.getElementById("rv-image-container");
 
-  if (s.imageUrl) { imgEl.src = s.imageUrl; imgEl.style.display = "block"; } else { imgEl.style.display = "none"; }
+  if (s.imageUrls && s.imageUrls.length > 1) {
+    imgEl.style.display = "none";
+    imgContainer.innerHTML = s.imageUrls.map((url, i) =>
+      `<div style="margin-bottom:8px">
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px">Screenshot ${i + 1}</div>
+        <img src="${url}" class="proof-img" onclick="window.open('${url}','_blank')" style="cursor:pointer">
+      </div>`
+    ).join("");
+    imgContainer.style.display = "block";
+  } else if (s.imageUrl) {
+    imgContainer.innerHTML = ""; imgContainer.style.display = "none";
+    imgEl.src = s.imageUrl; imgEl.style.display = "block";
+  } else {
+    imgEl.style.display = "none"; imgContainer.style.display = "none";
+  }
   if (s.textProof) { txtEl.textContent = s.textProof; txtEl.style.display = "block"; } else { txtEl.style.display = "none"; }
 
   openModal("review-modal");
