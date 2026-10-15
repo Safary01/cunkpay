@@ -398,6 +398,18 @@
         </select>
         <div class="field-hint">Helps workers find tasks relevant to them.</div>
       </div>
+      <!-- ── PROOF SAMPLE (OPTIONAL) ── -->
+      <div class="field-group">
+        <label class="field-label">Proof Sample Image <span style="color:var(--muted);font-weight:400">(Optional)</span></label>
+        <div class="proof-upload-area" id="sample-upload-area" onclick="document.getElementById('sample-file-input').click()" style="border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;background:var(--midnight);transition:all 0.2s">
+          <div style="font-size:1.4rem;margin-bottom:6px">🖼️</div>
+          <div style="font-size:0.82rem;color:var(--slate)">Upload a sample screenshot to show workers what correct proof looks like</div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">JPG, PNG · Max 5MB · Optional</div>
+        </div>
+        <input type="file" id="sample-file-input" accept="image/*" style="display:none" onchange="handleSampleFile(event)">
+        <div class="field-hint">Workers will see this before submitting their proof.</div>
+      </div>
+
       <div class="cost-preview" id="cost-preview" style="display:none">
         <div class="cost-row"><span style="color:var(--muted)">Slots × Reward</span><span id="cp-slots-reward" style="font-family:'Space Grotesk',sans-serif">₦0</span></div>
         <div class="cost-row"><span style="color:var(--white);font-weight:600">Total Reserved</span><span id="cp-total" style="color:var(--amber);font-family:'Space Grotesk',sans-serif;font-size:1rem">₦0</span></div>
@@ -479,6 +491,7 @@ let reviewingSubId = null;
 let reviewingWorkerId = null;
 let reviewingReward = 0;
 let depFile = null;
+let sampleFile = null;
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) { window.location.href = "auth.html"; return; }
@@ -658,7 +671,23 @@ window.openCreateTaskModal = function() {
   document.getElementById("t-category").value = "Facebook";
   document.getElementById("cost-preview").style.display = "none";
   document.getElementById("screenshot-count-group").style.display = "block";
+  sampleFile = null;
+  const sArea = document.getElementById("sample-upload-area");
+  sArea.style.borderColor = "";
+  sArea.style.background = "";
+  sArea.innerHTML = '<div style="font-size:1.4rem;margin-bottom:6px">🖼️</div><div style="font-size:0.82rem;color:var(--slate)">Upload a sample screenshot to show workers what correct proof looks like</div><div style="font-size:0.72rem;color:var(--muted);margin-top:4px">JPG, PNG · Max 5MB · Optional</div>';
   openModal("create-task-modal");
+};
+
+window.handleSampleFile = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast("Sample image must be under 5MB.", "error"); return; }
+  sampleFile = file;
+  const area = document.getElementById("sample-upload-area");
+  area.style.borderColor = "var(--green)";
+  area.style.background = "var(--green-dim)";
+  area.innerHTML = `<div style="font-size:1.4rem;margin-bottom:6px">✅</div><div style="font-size:0.82rem;color:var(--green)">${esc(file.name)}</div><div style="font-size:0.72rem;color:var(--muted);margin-top:4px">${(file.size/1024).toFixed(0)} KB · Click to change</div>`;
 };
 
 window.toggleScCount = function() {
@@ -712,6 +741,21 @@ window.createTask = async function() {
   btn.disabled = true; spinner.style.display = "inline-block";
 
   try {
+    // Upload proof sample image if provided
+    let proofSampleUrl = null;
+    if (sampleFile) {
+      try {
+        const sf = new FormData();
+        sf.append("file", sampleFile);
+        sf.append("upload_preset", CLOUDINARY_PRESET);
+        const sr = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: "POST", body: sf });
+        const sd = await sr.json();
+        if (sd.secure_url) proofSampleUrl = sd.secure_url;
+      } catch (e) {
+        console.log("Sample upload skipped:", e.message);
+      }
+    }
+
     const taskRef = await addDoc(collection(db, "tasks"), {
       advertiserId: currentUser.uid,
       advertiserName: currentUserDoc.displayName,
@@ -721,6 +765,7 @@ window.createTask = async function() {
       proofType,
       screenshotCount,
       category,
+      proofSampleUrl: proofSampleUrl || null,
       status: "active",
       totalBudget: totalCost,
       createdAt: serverTimestamp()
