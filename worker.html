@@ -430,6 +430,14 @@
         <div class="task-detail-reward" id="modal-reward">₦0</div>
       </div>
       <div class="task-description" id="modal-description"></div>
+
+      <!-- PROOF SAMPLE -->
+      <div id="modal-proof-sample" style="display:none;margin-bottom:14px">
+        <div style="font-size:0.75rem;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">📌 Sample Proof — What your screenshot should look like</div>
+        <img id="modal-sample-img" src="" alt="Proof sample" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;border:1px solid var(--amber);cursor:pointer" onclick="window.open(this.src,'_blank')">
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">Click image to view full size</div>
+      </div>
+
       <div id="modal-already-submitted" style="display:none">
         <div class="submission-status-card" id="modal-sub-status-card">
           <div style="font-weight:700;margin-bottom:4px" id="modal-sub-status-label"></div>
@@ -732,6 +740,16 @@ window.openTaskModal = async function(taskId) {
   document.getElementById("modal-slots-info").textContent = `${task.filledSlots} of ${task.totalSlots} slots filled`;
   document.getElementById("modal-proof-badge").textContent = proofLabel(task.proofType);
   document.getElementById("modal-cat-badge").textContent = task.category || "Other";
+
+  // Show proof sample if advertiser provided one
+  const sampleDiv = document.getElementById("modal-proof-sample");
+  const sampleImg = document.getElementById("modal-sample-img");
+  if (task.proofSampleUrl) {
+    sampleImg.src = task.proofSampleUrl;
+    sampleDiv.style.display = "block";
+  } else {
+    sampleDiv.style.display = "none";
+  }
 
   const showImg = task.proofType === "image" || task.proofType === "both";
   const showTxt = task.proofType === "text" || task.proofType === "both";
